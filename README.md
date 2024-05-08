@@ -4,3 +4,5 @@ ALS is a spin off of FiveM ELS by MrDaGree. With ELS being so outdated and no on
 At this time, the resource is available to the public; however, is missing some key features in early development. Please stay tuned to see more updates overtime!
 
 A quick and simple preview is available here: [YouTube](https://youtu.be/T0IcbNE3neM)
+
+## Want to try it out and need help? Check out the Wiki [here](https://github.com/Abel-Gaming/Advanced-Lighting-System/wiki)
