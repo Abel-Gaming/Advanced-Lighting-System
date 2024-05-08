@@ -2,28 +2,22 @@ Config = {}
 
 Config.Vehicles = {
     ["FBI"] = {
-        Pattern = 1,
-        FlashDelay = 250
+        Pattern = 1
     },
     ["FBI2"] = {
-        Pattern = 2,
-        FlashDelay = 250
+        Pattern = 2
     },
     ["POLICE"] = {
-        Pattern = 3,
-        FlashDelay = 250
+        Pattern = 3
     },
     ["POLICE2"] = {
-        Pattern = 4,
-        FlashDelay = 250
+        Pattern = 4
     },
     ["POLICE3"] = {
-        Pattern = 4,
-        FlashDelay = 250
+        Pattern = 4
     },
     ["RAMP"] = {
-        Pattern = 4,
-        FlashDelay = 250
+        Pattern = 5
     }
 }
 
@@ -55,5 +49,12 @@ Config.Patterns = {
             {Extras = {2, 4, 9}}  -- Second Flash
         },
         FlashDelay = 250
+    },
+    [5] = {
+        Stages = {
+            {Extras = {1, 3, 7}}, -- First Flash
+            {Extras = {2, 4, 9}}  -- Second Flash
+        },
+        FlashDelay = 75
     }
 }
