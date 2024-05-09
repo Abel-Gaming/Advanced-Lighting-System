@@ -1,6 +1,18 @@
+RequestScriptAudioBank('DLC_WMSIRENS\\SIRENPACK_ONE', false)
+
 function getClosestRoad(coords)
     local _, closestRoad, _, _ = GetClosestRoad(coords.x, coords.y, coords.z, 1, 1)
     return closestRoad
+end
+
+function GetHeadlightStatus(vehicle)
+    local retval, lightsOn, highbeamsOn = GetVehicleLightsState(vehicle)
+    return lightsOn
+end
+
+function GetHeadlightHighBeamStatus(vehicle)
+    local retval, lightsOn, highbeamsOn = GetVehicleLightsState(vehicle)
+    return highbeamsOn
 end
 
 function spawnObject(objectName, coords)
@@ -35,8 +47,12 @@ function SuccessMessage(successMessage)
 	DrawNotification(false, true)
 end
 
-function sendChatMessage(message)
-	TriggerEvent("chatMessage", "", {0, 0, 0}, "^3[REPORT] ^2" .. message)
+function sendChatMessageInfo(message)
+	TriggerEvent("chatMessage", "", {0, 0, 0}, "^3[INFO] ^7" .. message)
+end
+
+function sendChatMessageError(message)
+	TriggerEvent("chatMessage", "", {0, 0, 0}, "^8[ERROR] ^7" .. message)
 end
 
 function sendChatMessageNormal(message)
@@ -72,4 +88,128 @@ function CreateEnviromentLight(vehicle, light, offset, color)
         rgb[1], rgb[2], rgb[3],
         range, intensity, shadow
     )
+end
+
+function EnablePrimaryStage(vehicle, vehicleConfig)
+    PrimaryLightsThread = GetIdOfThisThread()
+    local ped = PlayerPedId()
+    --local vehicle = GetVehiclePedIsUsing(ped)
+    while ArePrimaryLightsActivated() do
+        Citizen.Wait(1)
+		SetVehicleAutoRepairDisabled(vehicle, true)
+        SetVehicleSiren(vehicle, true)
+        SetVehicleHasMutedSirens(vehicle, true)
+		SetVehicleKeepEngineOnWhenAbandoned(vehicle, true)
+        DisableVehicleImpactExplosionActivation(vehicle, true)
+        local pattern = Config.Patterns[vehicleConfig.Pattern]
+        if pattern then
+            for _, stage in ipairs(pattern.Primary) do
+                for _, extraIndex in ipairs(stage.Extras) do
+                    SetVehicleExtra(vehicle, extraIndex, 0)
+                end
+                Citizen.Wait(pattern.FlashDelay)
+                for _, extraIndex in ipairs(stage.Extras) do
+                    SetVehicleExtra(vehicle, extraIndex, 1)
+                end
+            end
+        end
+    end
+end
+
+function EnableSecondaryStage(vehicle, vehicleConfig)
+    local ped = PlayerPedId()
+    --local vehicle = GetVehiclePedIsUsing(ped)
+    while AreSecondaryLightsActivated() do
+        Citizen.Wait(1)
+
+		SetVehicleAutoRepairDisabled(vehicle, true)
+		SetVehicleKeepEngineOnWhenAbandoned(vehicle, true)
+
+        local pattern = Config.Patterns[vehicleConfig.Pattern]
+        if pattern then
+            for _, stage in ipairs(pattern.Secondary) do
+                for _, extraIndex in ipairs(stage.Extras) do
+                    SetVehicleExtra(vehicle, extraIndex, 0)
+                end
+                Citizen.Wait(pattern.FlashDelay)
+                for _, extraIndex in ipairs(stage.Extras) do
+                    SetVehicleExtra(vehicle, extraIndex, 1)
+                end
+            end
+        end
+    end
+end
+
+function EnableWarningStage(vehicle, vehicleConfig)
+    local ped = PlayerPedId()
+    --local vehicle = GetVehiclePedIsUsing(ped)
+    while AreWarningLightsActivated() do
+        Citizen.Wait(1)
+
+		SetVehicleAutoRepairDisabled(vehicle, true)
+		SetVehicleKeepEngineOnWhenAbandoned(vehicle, true)
+
+        local pattern = Config.Patterns[vehicleConfig.Pattern]
+        if pattern then
+            for _, stage in ipairs(pattern.Warning) do
+                for _, extraIndex in ipairs(stage.Extras) do
+                    SetVehicleExtra(vehicle, extraIndex, 0)
+                end
+                Citizen.Wait(pattern.FlashDelay)
+                for _, extraIndex in ipairs(stage.Extras) do
+                    SetVehicleExtra(vehicle, extraIndex, 1)
+                end
+            end
+        end
+    end
+end
+
+function DisableLights(vehicle)
+	if not ArePrimaryLightsActivated() then
+		local ped = PlayerPedId()
+		local vehicle = GetVehiclePedIsUsing(ped)
+		if vehicle ~= 0 then
+			SetVehicleExtra(vehicle, 1, 1)
+			SetVehicleExtra(vehicle, 2, 1)
+			SetVehicleExtra(vehicle, 3, 1)
+			SetVehicleExtra(vehicle, 4, 1)
+			SetVehicleExtra(vehicle, 5, 1)
+			SetVehicleExtra(vehicle, 6, 1)
+			SetVehicleExtra(vehicle, 7, 1)
+			SetVehicleExtra(vehicle, 8, 1)
+			SetVehicleExtra(vehicle, 9, 1)
+			SetVehicleExtra(vehicle, 10, 1)
+		end
+	end
+end
+
+function DisableActiveExtras()
+    local ped = PlayerPedId()
+	local vehicle = GetVehiclePedIsUsing(ped)
+	if vehicle ~= 0 then
+		for ExtraID = 0, 20 do
+            if DoesExtraExist(vehicle, ExtraID) then
+                SetVehicleExtra(vehicle, ExtraID, 1)
+            end
+        end
+	end
+end
+
+function _DrawRect(x, y, width, height, r, g, b, a, ya)
+    SetUiLayer(ya)
+    DrawRect(x, y, width, height, r, g, b, a)
+end
+
+function Draw(text, r, g, b, alpha, x, y, width, height, ya, center, font)
+    SetTextColour(r, g, b, alpha)
+    SetTextFont(font)
+    SetTextScale(width, height)
+    SetTextWrap(0.0, 1.0)
+    SetTextCentre(center)
+    SetTextDropshadow(0, 0, 0, 0, 0)
+    SetTextEdge(1, 0, 0, 0, 205)
+    BeginTextCommandDisplayText("STRING")
+    AddTextComponentSubstringPlayerName(text)
+    SetUiLayer(ya)
+    EndTextCommandDisplayText(x, y)
 end

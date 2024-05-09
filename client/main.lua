@@ -1,86 +1,102 @@
-print('Loaded ELS by Abel Gaming')
-RegisterKeyMapping('AG-ELS-FiveM-Primary', 'Toggle primary lights', 'KEYBOARD', 'Q')
-RegisterKeyMapping('AG-ELS-FiveM-Lock', 'Lock ELS', 'KEYBOARD', 'F24')
-local LightsActivated = false
-local ELSLocked = false
-
-RegisterCommand('AG-ELS-FiveM-Lock', function()
-	ELSLocked = not ELSLocked
+RegisterCommand('AG-ALS-FiveM-Lock', function()
+	ALSLocked = not ALSLocked
 end)
 
-RegisterCommand('AG-ELS-FiveM-Primary', function()
-	if not ELSLocked then
+RegisterCommand('AG-ALS-FiveM-Primary', function()
+	if not ALSLocked then
 		local ped = PlayerPedId()
-		if LightsActivated then
+		if PrimaryLightsActivated then
 			local vehicle = GetVehiclePedIsIn(ped)
 			SetVehicleSiren(vehicle, false)
-			DisableLights(vehicle)
-			LightsActivated = false
+			--DisableLights(vehicle)
+			DisableActiveExtras()
+			PrimaryLightsActivated = false
 		else
 			local vehicle = GetVehiclePedIsUsing(ped)
 			for k,v in pairs(Config.Vehicles) do
 				if GetEntityModel(vehicle) == GetHashKey(k) then
 					local vehicleConfig = Config.Vehicles[k]
-					Citizen.CreateThread(function()
-						EnablePrimaryStage(vehicleConfig)
-					end)
+					TriggerServerEvent('ALS:TogglePrimaryLights', vehicle, vehicleConfig)
 					break
 				end
 			end
-			LightsActivated = true
+			PrimaryLightsActivated = true
 		end
 	end
 end)
 
-function EnablePrimaryStage(vehicleConfig)
-    local ped = PlayerPedId()
-    local vehicle = GetVehiclePedIsUsing(ped)
-    while LightsActivated do
-        Citizen.Wait(1)
-        if IsPedInAnyVehicle(ped) then
-            SetVehicleAutoRepairDisabled(vehicle, true)
-            SetVehicleSiren(vehicle, true)
-            SetVehicleHasMutedSirens(vehicle, true)
-
-            local pattern = Config.Patterns[vehicleConfig.Pattern]
-            if pattern then
-                for _, stage in ipairs(pattern.Stages) do
-                    for _, extraIndex in ipairs(stage.Extras) do
-                        SetVehicleExtra(vehicle, extraIndex, 0)
-                    end
-                    Citizen.Wait(pattern.FlashDelay)
-                    for _, extraIndex in ipairs(stage.Extras) do
-                        SetVehicleExtra(vehicle, extraIndex, 1)
-                    end
-                end
-            end
-        end
-    end
-end
-
-function DisableLights(vehicle)
-	if not LightsActivated then
+RegisterCommand('AG-ALS-FiveM-Secondary', function()
+	if not ALSLocked then
 		local ped = PlayerPedId()
-		local vehicle = GetVehiclePedIsUsing(ped)
-		if vehicle ~= 0 then
-			SetVehicleExtra(vehicle, 1, 1)
-			SetVehicleExtra(vehicle, 2, 1)
-			SetVehicleExtra(vehicle, 3, 1)
-			SetVehicleExtra(vehicle, 4, 1)
-			SetVehicleExtra(vehicle, 5, 1)
-			SetVehicleExtra(vehicle, 6, 1)
-			SetVehicleExtra(vehicle, 7, 1)
-			SetVehicleExtra(vehicle, 8, 1)
-			SetVehicleExtra(vehicle, 9, 1)
-			SetVehicleExtra(vehicle, 10, 1)
+		if SecondaryLightsActivated then
+			local vehicle = GetVehiclePedIsIn(ped)
+			--DisableLights(vehicle)
+			DisableActiveExtras()
+			SecondaryLightsActivated = false
+		else
+			local vehicle = GetVehiclePedIsUsing(ped)
+			for k,v in pairs(Config.Vehicles) do
+				if GetEntityModel(vehicle) == GetHashKey(k) then
+					local vehicleConfig = Config.Vehicles[k]
+					TriggerServerEvent('ALS:ToggleSecondaryLights', vehicle, vehicleConfig)
+					break
+				end
+			end
+			SecondaryLightsActivated = true
 		end
 	end
+end)
+
+RegisterCommand('AG-ALS-FiveM-Warning', function()
+	if not ALSLocked then
+		local ped = PlayerPedId()
+		if WarningLightsActivated then
+			local vehicle = GetVehiclePedIsIn(ped)
+			--DisableLights(vehicle)
+			DisableActiveExtras()
+			WarningLightsActivated = false
+		else
+			local vehicle = GetVehiclePedIsUsing(ped)
+			for k,v in pairs(Config.Vehicles) do
+				if GetEntityModel(vehicle) == GetHashKey(k) then
+					local vehicleConfig = Config.Vehicles[k]
+					--Citizen.CreateThread(function()
+						--EnableWarningStage(vehicleConfig)
+					--end)
+					TriggerServerEvent('ALS:ToggleWarningLights', vehicle, vehicleConfig)
+					break
+				end
+			end
+			WarningLightsActivated = true
+		end
+	end
+end)
+
+function ArePrimaryLightsActivated()
+	return PrimaryLightsActivated
 end
 
+function AreSecondaryLightsActivated()
+	return SecondaryLightsActivated
+end
+
+function AreWarningLightsActivated()
+	return WarningLightsActivated
+end
+
+function IsControlModuleOpen()
+	return ModuleOpen
+end
+
+function IsPrimarySirenActive()
+	return PrimarySirenActivated
+end
+
+----- Draw Text if ALS is Locked -----
 Citizen.CreateThread(function()
 	while true do
 		Citizen.Wait(0)	
-		if ELSLocked then
+		if ALSLocked then
 			-- Draw text
 			SetTextFont(0)
             SetTextProportional(1)
@@ -90,8 +106,41 @@ Citizen.CreateThread(function()
             SetTextDropShadow()
             SetTextOutline()
             SetTextEntry("STRING")
-            AddTextComponentString("~r~ELS Locked")
+            AddTextComponentString("~r~ALS Locked")
             DrawText(0.005, 0.5)
+		end
+	end
+end)
+
+----- Listen For Siren Presses -----
+Citizen.CreateThread(function()
+	while true do
+		Citizen.Wait(1)
+
+		-- GET THE PLAYER VEHICLE --
+		local ped = PlayerPedId()
+		local vehicle = GetVehiclePedIsUsing(ped)
+
+		----- PRIMARY SIREN -----
+		if IsControlJustPressed(0, 19) and PrimaryLightsActivated and not ALSLocked and not SecondarySirenActivated then
+			if PrimarySirenActivated then
+				TriggerServerEvent('ALS:StopPrimarySirenServer', vehicle)
+				PrimarySirenActivated = false
+			else
+				TriggerServerEvent('ALS:PlayPrimarySirenServer', vehicle)
+				PrimarySirenActivated = true
+			end
+		end
+
+		----- SECONDARY SIREN -----
+		if IsControlJustPressed(0, 172) and PrimaryLightsActivated and not ALSLocked and not PrimarySirenActivated then
+			if SecondarySirenActivated then
+				TriggerServerEvent('ALS:StopSecondarySirenServer', vehicle)
+				SecondarySirenActivated = false
+			else
+				TriggerServerEvent('ALS:PlaySecondarySirenServer', vehicle)
+				SecondarySirenActivated = true
+			end
 		end
 	end
 end)
