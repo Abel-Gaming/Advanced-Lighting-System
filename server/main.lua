@@ -37,3 +37,9 @@ RegisterServerEvent('ALS:ToggleWarningLights')
 AddEventHandler('ALS:ToggleWarningLights', function(vehicle, vehicleConfig)
     TriggerClientEvent('ALS:ToggleWarningLights', -1, vehicle, vehicleConfig)
 end)
+
+----- DISABLE LIGHTS -----
+RegisterServerEvent('ALS:DisableLights')
+AddEventHandler('ALS:DisableLights', function(vehicle)
+    TriggerClientEvent('ALS:DisableLights', -1, vehicle)
+end)

@@ -65,24 +65,33 @@ function ToggleExtra(vehicle, extra, toggle)
     SetVehicleExtra(vehicle, extra, value)
 end
 
-function CreateEnviromentLight(vehicle, light, offset, color)
+function CreateEnvironmentLight(vehicle, light, offset, color)
     local boneIndex = GetEntityBoneIndexByName(vehicle, light)
+    if boneIndex == -1 then
+        print("Error: Bone '" .. light .. "' not found on vehicle.")
+        return
+    end
+
     local coords = GetWorldPositionOfEntityBone(vehicle, boneIndex)
     local position = coords + offset
 
-    local rgb = { 0, 0, 0 }
+    local rgb = { 255, 255, 255 } -- Default color: white
     local range = 50.0
     local intensity = 1.0
     local shadow = 1.0
 
-    if string.lower(color) == 'blue' then rgb = { 0, 0, 255 }
-    elseif string.lower(color) == 'red' then rgb = { 255, 0, 0 }
-    elseif string.lower(color) == 'green' then rgb = { 0, 255, 0 }
-    elseif string.lower(color) == 'white' then rgb = { 255, 255, 255 }
-    elseif string.lower(color) == 'amber' then rgb = { 255, 194, 0}
+    color = string.lower(color)
+    if color == 'blue' then
+        rgb = { 0, 0, 255 }
+    elseif color == 'red' then
+        rgb = { 255, 0, 0 }
+    elseif color == 'green' then
+        rgb = { 0, 255, 0 }
+    elseif color == 'amber' then
+        rgb = { 255, 194, 0 }
     end
 
-    -- draw the light
+    -- Draw the light
     DrawLightWithRangeAndShadow(
         position.x, position.y, position.z,
         rgb[1], rgb[2], rgb[3],
@@ -91,9 +100,7 @@ function CreateEnviromentLight(vehicle, light, offset, color)
 end
 
 function EnablePrimaryStage(vehicle, vehicleConfig)
-    PrimaryLightsThread = GetIdOfThisThread()
     local ped = PlayerPedId()
-    --local vehicle = GetVehiclePedIsUsing(ped)
     while ArePrimaryLightsActivated() do
         Citizen.Wait(1)
 		SetVehicleAutoRepairDisabled(vehicle, true)
@@ -164,29 +171,9 @@ function EnableWarningStage(vehicle, vehicleConfig)
     end
 end
 
-function DisableLights(vehicle)
-	if not ArePrimaryLightsActivated() then
-		local ped = PlayerPedId()
-		local vehicle = GetVehiclePedIsUsing(ped)
-		if vehicle ~= 0 then
-			SetVehicleExtra(vehicle, 1, 1)
-			SetVehicleExtra(vehicle, 2, 1)
-			SetVehicleExtra(vehicle, 3, 1)
-			SetVehicleExtra(vehicle, 4, 1)
-			SetVehicleExtra(vehicle, 5, 1)
-			SetVehicleExtra(vehicle, 6, 1)
-			SetVehicleExtra(vehicle, 7, 1)
-			SetVehicleExtra(vehicle, 8, 1)
-			SetVehicleExtra(vehicle, 9, 1)
-			SetVehicleExtra(vehicle, 10, 1)
-		end
-	end
-end
-
-function DisableActiveExtras()
-    local ped = PlayerPedId()
-	local vehicle = GetVehiclePedIsUsing(ped)
+function DisableActiveExtras(vehicle)
 	if vehicle ~= 0 then
+        SetVehicleSiren(vehicle, false)
 		for ExtraID = 0, 20 do
             if DoesExtraExist(vehicle, ExtraID) then
                 SetVehicleExtra(vehicle, ExtraID, 1)
@@ -212,4 +199,24 @@ function Draw(text, r, g, b, alpha, x, y, width, height, ya, center, font)
     AddTextComponentSubstringPlayerName(text)
     SetUiLayer(ya)
     EndTextCommandDisplayText(x, y)
+end
+
+function ArePrimaryLightsActivated()
+	return PrimaryLightsActivated
+end
+
+function AreSecondaryLightsActivated()
+	return SecondaryLightsActivated
+end
+
+function AreWarningLightsActivated()
+	return WarningLightsActivated
+end
+
+function IsControlModuleOpen()
+	return ModuleOpen
+end
+
+function IsPrimarySirenActive()
+	return PrimarySirenActivated
 end

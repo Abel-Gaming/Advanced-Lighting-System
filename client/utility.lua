@@ -20,6 +20,9 @@ Citizen.CreateThread(function()
 	while not NetworkIsSessionStarted() do
 		Wait(500)
 	end
+    if Config.DisableGameControls then
+
+    end
     sendChatMessageInfo('Loaded Advanced Lighting System by Abel Gaming')
     print('Loaded Advanced Lighting System by Abel Gaming')
     DisableActiveExtras()
@@ -149,4 +152,57 @@ Citizen.CreateThread(function()
             end
         end
     end
+end)
+
+----- ALS LOCKED -----
+Citizen.CreateThread(function()
+	while true do
+		Citizen.Wait(0)	
+		if ALSLocked then
+			-- Draw text
+			SetTextFont(0)
+            SetTextProportional(1)
+            SetTextScale(0.0, 0.3)
+            SetTextDropshadow(0, 0, 0, 0, 255)
+            SetTextEdge(1, 0, 0, 0, 255)
+            SetTextDropShadow()
+            SetTextOutline()
+            SetTextEntry("STRING")
+            AddTextComponentString("~r~ALS Locked")
+            DrawText(0.005, 0.5)
+		end
+	end
+end)
+
+----- SIREN CONTROL -----
+Citizen.CreateThread(function()
+	while true do
+		Citizen.Wait(1)
+
+		-- GET THE PLAYER VEHICLE --
+		local ped = PlayerPedId()
+		local vehicle = GetVehiclePedIsUsing(ped)
+
+		----- PRIMARY SIREN -----
+		if IsControlJustPressed(0, 19) and PrimaryLightsActivated and not ALSLocked and not SecondarySirenActivated then
+			if PrimarySirenActivated then
+				TriggerServerEvent('ALS:StopPrimarySirenServer', vehicle)
+				PrimarySirenActivated = false
+			else
+				TriggerServerEvent('ALS:PlayPrimarySirenServer', vehicle)
+				PrimarySirenActivated = true
+			end
+		end
+
+		----- SECONDARY SIREN -----
+		if IsControlJustPressed(0, 172) and PrimaryLightsActivated and not ALSLocked and not PrimarySirenActivated then
+			if SecondarySirenActivated then
+				TriggerServerEvent('ALS:StopSecondarySirenServer', vehicle)
+				SecondarySirenActivated = false
+			else
+				TriggerServerEvent('ALS:PlaySecondarySirenServer', vehicle)
+				SecondarySirenActivated = true
+			end
+		end
+	end
 end)

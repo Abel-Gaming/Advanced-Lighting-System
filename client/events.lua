@@ -22,7 +22,6 @@ AddEventHandler('ALS:StopPrimarySirenClient', function(vehicle)
         ReleaseSoundId(soundId)
         activeSounds[vehicle] = nil
     end
-    print(soundId)
 end)
 
 ----- SECONDARY SIREN -----
@@ -73,4 +72,10 @@ AddEventHandler('ALS:ToggleWarningLights', function(vehicle, vehicleConfig)
     Citizen.CreateThread(function()
         EnableWarningStage(vehicle, vehicleConfig)
     end)
+end)
+
+----- DISABLE EMERGENCY LIGHTS -----
+RegisterNetEvent('ALS:DisableLights')
+AddEventHandler('ALS:DisableLights', function(vehicle)
+    DisableActiveExtras(vehicle)
 end)
