@@ -1,5 +1,5 @@
 Config = {}
-Config.EnableDebugging = false -- Useful for editing the script
+Config.EnableDebugging = true -- Useful for editing the script
 Config.DisableGameControls = true -- This will disable the default game controls (Q - Radio Wheel)
 
 Config.Vehicles = {
@@ -16,6 +16,9 @@ Config.Vehicles = {
         Pattern = 4
     },
     ["POLICE3"] = {
+        Pattern = 4
+    },
+    ["SHERIFF2"] = {
         Pattern = 4
     },
     ["RAMP"] = {
@@ -47,7 +50,34 @@ Config.Vehicles = {
     },
     ["SCSO9"] = {
         Pattern = 6
-    }
+    },
+    ["21F150K9"] = {
+        Pattern = 7
+    },
+    ["SAHP1"] = {
+        Pattern = 7
+    },
+    ["SAHP2"] = {
+        Pattern = 7
+    },
+    ["SAHP3"] = {
+        Pattern = 7
+    },
+    ["SAHP4"] = {
+        Pattern = 8
+    },
+    ["SAHP5"] = {
+        Pattern = 7
+    },
+    ["SAHP6"] = {
+        Pattern = 7
+    },
+    ["SAHP7"] = {
+        Pattern = 8
+    },
+    ["SAHP8"] = {
+        Pattern = 7
+    },
 }
 
 Config.Patterns = {
@@ -154,6 +184,72 @@ Config.Patterns = {
             {Extras = {}},
             {Extras = {1,2}},
             {Extras = {3,4}},
+        },
+        Secondary = {
+            {Extras = {9}},
+            {Extras = {8}},
+            {Extras = {7}}
+        },
+        Warning = {
+            {Extras = {1}},
+            {Extras = {4}}
+        },
+        FlashDelay = 250
+    },
+
+    [7] = {
+        Primary = {
+            {Extras = {2,4,5}},
+            {Extras = {1,3,6}},
+            {Extras = {2,4,5}},
+            {Extras = {1,3,6}},
+            {Extras = {2,4,5}},
+            {Extras = {1,3,6}},
+            {Extras = {2,4,5}},
+            {Extras = {1,3,6}},
+            {Extras = {}},
+            {Extras = {2,3,6}},
+            {Extras = {1,4,5}},
+            {Extras = {2,3,6}},
+            {Extras = {1,4,5}},
+            {Extras = {2,3,6}},
+            {Extras = {1,4,5}},
+            {Extras = {2,3,6}},
+            {Extras = {1,4,5}},
+            {Extras = {}},
+        },
+        Secondary = {
+            {Extras = {7}},
+            {Extras = {8}},
+            {Extras = {9}}
+        },
+        Warning = {
+            {Extras = {1}},
+            {Extras = {4}}
+        },
+        FlashDelay = 250
+    },
+
+    [8] = {
+        Primary = {
+            {Extras = {2,4,5}},
+            {Extras = {1,3,6}},
+            {Extras = {2,4,5}},
+            {Extras = {1,3,6}},
+            {Extras = {2,4,5}},
+            {Extras = {1,3,6}},
+            {Extras = {2,4,5}},
+            {Extras = {1,3,6}},
+            {Extras = {}},
+            {Extras = {2,3,6}},
+            {Extras = {1,4,5}},
+            {Extras = {2,3,6}},
+            {Extras = {1,4,5}},
+            {Extras = {2,3,6}},
+            {Extras = {1,4,5}},
+            {Extras = {2,3,6}},
+            {Extras = {1,4,5}},
+            {Extras = {}},
         },
         Secondary = {
             {Extras = {9}},

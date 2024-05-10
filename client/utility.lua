@@ -189,7 +189,8 @@ Citizen.CreateThread(function()
 				TriggerServerEvent('ALS:StopPrimarySirenServer', vehicle)
 				PrimarySirenActivated = false
 			else
-				TriggerServerEvent('ALS:PlayPrimarySirenServer', vehicle)
+                local soundID = math.random(1, 100)
+				TriggerServerEvent('ALS:PlayPrimarySirenServer', vehicle, soundID)
 				PrimarySirenActivated = true
 			end
 		end

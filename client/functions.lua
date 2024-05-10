@@ -59,10 +59,10 @@ function sendChatMessageNormal(message)
 	TriggerEvent("chatMessage", "", {0, 0, 0}, "^7" .. message)
 end
 
-function ToggleExtra(vehicle, extra, toggle)
-    local value = toggle and 0 or 1
-    SetVehicleAutoRepairDisabled(vehicle, true)
-    SetVehicleExtra(vehicle, extra, value)
+function toggleSirenMute(veh, toggle)
+    if DoesEntityExist(veh) and not IsEntityDead(veh) then
+        DisableVehicleImpactExplosionActivation(veh, toggle)
+    end
 end
 
 function CreateEnvironmentLight(vehicle, light, offset, color)
@@ -100,24 +100,24 @@ function CreateEnvironmentLight(vehicle, light, offset, color)
 end
 
 function EnablePrimaryStage(vehicle, vehicleConfig)
-    local ped = PlayerPedId()
-    while ArePrimaryLightsActivated() do
+    while PrimaryLightsActivated do
         Citizen.Wait(1)
-		SetVehicleAutoRepairDisabled(vehicle, true)
-        SetVehicleSiren(vehicle, true)
-        SetVehicleHasMutedSirens(vehicle, true)
-		SetVehicleKeepEngineOnWhenAbandoned(vehicle, true)
-        DisableVehicleImpactExplosionActivation(vehicle, true)
+        SetVehicleEngineOn(vehicle, true, true, false)
+        local lastFlash = {extras = {}}
         local pattern = Config.Patterns[vehicleConfig.Pattern]
         if pattern then
             for _, stage in ipairs(pattern.Primary) do
                 for _, extraIndex in ipairs(stage.Extras) do
-                    SetVehicleExtra(vehicle, extraIndex, 0)
+                    SetVehicleAutoRepairDisabled(vehicle, true)
+                    ToggleExtra(vehicle, extraIndex, 0)
+                    table.insert(lastFlash.extras, extraIndex)
                 end
                 Citizen.Wait(pattern.FlashDelay)
-                for _, extraIndex in ipairs(stage.Extras) do
-                    SetVehicleExtra(vehicle, extraIndex, 1)
+                for _, v in ipairs(lastFlash.extras) do
+                    SetVehicleAutoRepairDisabled(vehicle, 1)
+                    ToggleExtra(vehicle, v, false)
                 end
+                lastFlash.extras = {}
             end
         end
     end
@@ -125,23 +125,24 @@ end
 
 function EnableSecondaryStage(vehicle, vehicleConfig)
     local ped = PlayerPedId()
-    --local vehicle = GetVehiclePedIsUsing(ped)
     while AreSecondaryLightsActivated() do
         Citizen.Wait(1)
-
-		SetVehicleAutoRepairDisabled(vehicle, true)
-		SetVehicleKeepEngineOnWhenAbandoned(vehicle, true)
-
+        SetVehicleEngineOn(vehicle, true, true, false)
+        local lastFlash = {extras = {}}
         local pattern = Config.Patterns[vehicleConfig.Pattern]
         if pattern then
             for _, stage in ipairs(pattern.Secondary) do
                 for _, extraIndex in ipairs(stage.Extras) do
-                    SetVehicleExtra(vehicle, extraIndex, 0)
+                    SetVehicleAutoRepairDisabled(vehicle, true)
+                    ToggleExtra(vehicle, extraIndex, 0)
+                    table.insert(lastFlash.extras, extraIndex)
                 end
                 Citizen.Wait(pattern.FlashDelay)
-                for _, extraIndex in ipairs(stage.Extras) do
-                    SetVehicleExtra(vehicle, extraIndex, 1)
+                for _, v in ipairs(lastFlash.extras) do
+                    SetVehicleAutoRepairDisabled(vehicle, 1)
+                    ToggleExtra(vehicle, v, false)
                 end
+                lastFlash.extras = {}
             end
         end
     end
@@ -149,23 +150,24 @@ end
 
 function EnableWarningStage(vehicle, vehicleConfig)
     local ped = PlayerPedId()
-    --local vehicle = GetVehiclePedIsUsing(ped)
     while AreWarningLightsActivated() do
         Citizen.Wait(1)
-
-		SetVehicleAutoRepairDisabled(vehicle, true)
-		SetVehicleKeepEngineOnWhenAbandoned(vehicle, true)
-
+        SetVehicleEngineOn(vehicle, true, true, false)
+        local lastFlash = {extras = {}}
         local pattern = Config.Patterns[vehicleConfig.Pattern]
         if pattern then
             for _, stage in ipairs(pattern.Warning) do
                 for _, extraIndex in ipairs(stage.Extras) do
-                    SetVehicleExtra(vehicle, extraIndex, 0)
+                    SetVehicleAutoRepairDisabled(vehicle, true)
+                    ToggleExtra(vehicle, extraIndex, 0)
+                    table.insert(lastFlash.extras, extraIndex)
                 end
                 Citizen.Wait(pattern.FlashDelay)
-                for _, extraIndex in ipairs(stage.Extras) do
-                    SetVehicleExtra(vehicle, extraIndex, 1)
+                for _, v in ipairs(lastFlash.extras) do
+                    SetVehicleAutoRepairDisabled(vehicle, 1)
+                    ToggleExtra(vehicle, v, false)
                 end
+                lastFlash.extras = {}
             end
         end
     end
@@ -219,4 +221,15 @@ end
 
 function IsPrimarySirenActive()
 	return PrimarySirenActivated
+end
+
+function ToggleExtra(vehicle, extra, toggle)
+    local value = toggle and 0 or 1
+    SetVehicleAutoRepairDisabled(vehicle, true)
+    SetVehicleExtra(vehicle, extra, value)
+end
+
+local function ToggleMisc(vehicle, misc, toggle)
+    SetVehicleModKit(vehicle, 0)
+    SetVehicleMod(vehicle, misc, toggle, false)
 end

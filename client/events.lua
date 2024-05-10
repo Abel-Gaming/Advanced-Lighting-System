@@ -1,27 +1,12 @@
 ----- PRIMARY SIREN -----
 RegisterNetEvent('ALS:PlayPrimarySirenClient')
-AddEventHandler('ALS:PlayPrimarySirenClient', function(vehicle)
-    local soundId = GetSoundId()
-    if Config.EnableDebugging then
-        print('Starting Siren: ' .. soundId)
-        print(vehicle)
-    end
-    PlaySoundFromEntity(soundId, 'SIREN_ALPHA', vehicle, 'DLC_WMSIRENS_SOUNDSET', 0, 0)
-    activeSounds[vehicle] = soundId
+AddEventHandler('ALS:PlayPrimarySirenClient', function(vehicle, soundID)
+    SetVehicleSiren(vehicle, true)
 end)
 
 RegisterNetEvent('ALS:StopPrimarySirenClient')
 AddEventHandler('ALS:StopPrimarySirenClient', function(vehicle)
-    local soundId = activeSounds[vehicle]
-    if Config.EnableDebugging then
-        print('Stopping Siren: ' .. soundId)
-        print(vehicle)
-    end
-    if soundId then
-        StopSound(soundId)
-        ReleaseSoundId(soundId)
-        activeSounds[vehicle] = nil
-    end
+    SetVehicleSiren(vehicle, false)
 end)
 
 ----- SECONDARY SIREN -----
@@ -78,4 +63,23 @@ end)
 RegisterNetEvent('ALS:DisableLights')
 AddEventHandler('ALS:DisableLights', function(vehicle)
     DisableActiveExtras(vehicle)
+end)
+
+----- TOGGLE EXTRAS -----
+RegisterNetEvent('ALS:toggleExtra')
+AddEventHandler('ALS:toggleExtra', function(vehicle, extra)
+    if not vehicle or not extra then
+        CancelEvent()
+        return
+    end
+    extra = tonumber(extra) or -1
+    local model = GetDisplayNameFromVehicleModel(GetEntityModel(vehicle))
+    if not DoesExtraExist(vehicle, extra) then
+        print('Extra ' .. extra .. ' does not exist on your ' .. model .. '!')
+        CancelEvent()
+        return
+    end
+    local toggle = IsVehicleExtraTurnedOn(vehicle, extra)
+    SetVehicleAutoRepairDisabled(vehicle, true)
+    SetVehicleExtra(vehicle, extra, toggle)
 end)

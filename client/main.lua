@@ -4,12 +4,12 @@ end)
 
 RegisterCommand('AG-ALS-FiveM-Primary', function()
 	local ped = PlayerPedId()
-	local veh = GetVehiclePedIsIn(ped)
+	local veh = GetVehiclePedIsUsing(ped)
 	if GetVehicleClass(veh) == 18 then
 		if not ALSLocked then
 			local ped = PlayerPedId()
 			if PrimaryLightsActivated then
-				local vehicle = GetVehiclePedIsIn(ped)
+				local vehicle = GetVehiclePedIsUsing(ped)
 				TriggerServerEvent('ALS:DisableLights', vehicle)
 				if PrimarySirenActivated then
 					TriggerServerEvent('ALS:StopPrimarySirenServer', vehicle)
@@ -37,13 +37,12 @@ end)
 
 RegisterCommand('AG-ALS-FiveM-Secondary', function()
 	local ped = PlayerPedId()
-	local veh = GetVehiclePedIsIn(ped)
+	local veh = GetVehiclePedIsUsing(ped)
 	if GetVehicleClass(veh) == 18 then
 		if not ALSLocked then
 			local ped = PlayerPedId()
 			if SecondaryLightsActivated then
-				local vehicle = GetVehiclePedIsIn(ped)
-				local vehicle = GetVehiclePedIsIn(ped)
+				local vehicle = GetVehiclePedIsUsing(ped)
 				TriggerServerEvent('ALS:DisableLights', vehicle)
 				SecondaryLightsActivated = false
 			else
@@ -63,13 +62,13 @@ end)
 
 RegisterCommand('AG-ALS-FiveM-Warning', function()
 	local ped = PlayerPedId()
-	local veh = GetVehiclePedIsIn(ped)
+	local veh = GetVehiclePedIsUsing(ped)
 	if GetVehicleClass(veh) == 18 then
 		if not ALSLocked then
 			local ped = PlayerPedId()
 			if WarningLightsActivated then
-				local vehicle = GetVehiclePedIsIn(ped)
-				local vehicle = GetVehiclePedIsIn(ped)
+				local vehicle = GetVehiclePedIsUsing(ped)
+				local vehicle = GetVehiclePedIsUsing(ped)
 				TriggerServerEvent('ALS:DisableLights', vehicle)
 				WarningLightsActivated = false
 			else
