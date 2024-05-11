@@ -6,7 +6,7 @@ Config.UseWMServerSirens = false -- https://github.com/Walsheyy/WMServerSirens
 
 Config.Vehicles = {
     ["FBI"] = {
-        Pattern = 9
+        Pattern = 1
     },
     ["FBI2"] = {
         Pattern = 2
@@ -25,60 +25,6 @@ Config.Vehicles = {
     },
     ["RAMP"] = {
         Pattern = 5
-    },
-    ["SCSO1"] = {
-        Pattern = 5
-    },
-    ["SCSO2"] = {
-        Pattern = 5
-    },
-    ["SCSO3"] = {
-        Pattern = 5
-    },
-    ["SCSO4"] = {
-        Pattern = 5
-    },
-    ["SCSO5"] = {
-        Pattern = 5
-    },
-    ["SCSO6"] = {
-        Pattern = 5
-    },
-    ["SCSO7"] = {
-        Pattern = 6
-    },
-    ["SCSO8"] = {
-        Pattern = 5
-    },
-    ["SCSO9"] = {
-        Pattern = 6
-    },
-    ["21F150K9"] = {
-        Pattern = 7
-    },
-    ["SAHP1"] = {
-        Pattern = 7
-    },
-    ["SAHP2"] = {
-        Pattern = 7
-    },
-    ["SAHP3"] = {
-        Pattern = 7
-    },
-    ["SAHP4"] = {
-        Pattern = 8
-    },
-    ["SAHP5"] = {
-        Pattern = 7
-    },
-    ["SAHP6"] = {
-        Pattern = 7
-    },
-    ["SAHP7"] = {
-        Pattern = 8
-    },
-    ["SAHP8"] = {
-        Pattern = 7
     },
 }
 
@@ -169,112 +115,6 @@ Config.Patterns = {
             {Extras = {2}},
             {Extras = {3}},
             {Extras = {4}}
-        },
-        Warning = {
-            {Extras = {1}},
-            {Extras = {4}}
-        },
-        FlashDelay = 250
-    },
-
-    [6] = {
-        Primary = {
-            {Extras = {1,4}},
-            {Extras = {2,3,5,6,7}},
-            {Extras = {1,4}},
-            {Extras = {2,3,5,6,7}},
-            {Extras = {}},
-            {Extras = {1,2}},
-            {Extras = {3,4}},
-        },
-        Secondary = {
-            {Extras = {9}},
-            {Extras = {8}},
-            {Extras = {7}}
-        },
-        Warning = {
-            {Extras = {1}},
-            {Extras = {4}}
-        },
-        FlashDelay = 250
-    },
-
-    [7] = {
-        Primary = {
-            {Extras = {2,4,5}},
-            {Extras = {1,3,6}},
-            {Extras = {2,4,5}},
-            {Extras = {1,3,6}},
-            {Extras = {2,4,5}},
-            {Extras = {1,3,6}},
-            {Extras = {2,4,5}},
-            {Extras = {1,3,6}},
-            {Extras = {}},
-            {Extras = {2,3,6}},
-            {Extras = {1,4,5}},
-            {Extras = {2,3,6}},
-            {Extras = {1,4,5}},
-            {Extras = {2,3,6}},
-            {Extras = {1,4,5}},
-            {Extras = {2,3,6}},
-            {Extras = {1,4,5}},
-            {Extras = {}},
-        },
-        Secondary = {
-            {Extras = {7}},
-            {Extras = {8}},
-            {Extras = {9}}
-        },
-        Warning = {
-            {Extras = {1}},
-            {Extras = {4}}
-        },
-        FlashDelay = 250
-    },
-
-    [8] = {
-        Primary = {
-            {Extras = {2,4,5}},
-            {Extras = {1,3,6}},
-            {Extras = {2,4,5}},
-            {Extras = {1,3,6}},
-            {Extras = {2,4,5}},
-            {Extras = {1,3,6}},
-            {Extras = {2,4,5}},
-            {Extras = {1,3,6}},
-            {Extras = {}},
-            {Extras = {2,3,6}},
-            {Extras = {1,4,5}},
-            {Extras = {2,3,6}},
-            {Extras = {1,4,5}},
-            {Extras = {2,3,6}},
-            {Extras = {1,4,5}},
-            {Extras = {2,3,6}},
-            {Extras = {1,4,5}},
-            {Extras = {}},
-        },
-        Secondary = {
-            {Extras = {9}},
-            {Extras = {8}},
-            {Extras = {7}}
-        },
-        Warning = {
-            {Extras = {1}},
-            {Extras = {4}}
-        },
-        FlashDelay = 250
-    },
-
-    [9] = {
-        Primary = {
-            {Extras = {1,2,7}},
-            {Extras = {3,4,9}},
-        },
-        Secondary = {
-            {Extras = {4}}, -- First Flash
-            {Extras = {3}}, -- Second Flash
-            {Extras = {2}}, -- Third Flash
-            {Extras = {1}}, -- Fourth Flash
         },
         Warning = {
             {Extras = {1}},
