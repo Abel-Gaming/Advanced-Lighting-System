@@ -30,6 +30,8 @@ Citizen.CreateThread(function()
     RegisterKeyMapping('AG-ALS-FiveM-Secondary', 'Toggle Secondary Lights', 'KEYBOARD', 'K')
     RegisterKeyMapping('AG-ALS-FiveM-Warning', 'Toggle Warning Lights', 'KEYBOARD', 'J')
     RegisterKeyMapping('AG-ALS-FiveM-Lock', 'Lock ALS', 'KEYBOARD', 'F24')
+    RegisterKeyMapping('AG-ALS-FiveM-PrimarySiren', 'Toggle Primary Siren', 'KEYBOARD', 'LALT')
+    RegisterKeyMapping('AG-ALS-FiveM-SecondarySiren', 'Toggle Secondary Siren', 'KEYBOARD', 'LALT')
     if Config.UseWMServerSirens then
         RequestScriptAudioBank('DLC_WMSIRENS\\SIRENPACK_ONE', false)
     end 
@@ -176,43 +178,6 @@ Citizen.CreateThread(function()
             SetTextEntry("STRING")
             AddTextComponentString("~r~ALS Locked")
             DrawText(0.005, 0.5)
-		end
-	end
-end)
-
------ SIREN CONTROL -----
-Citizen.CreateThread(function()
-	while true do
-		Citizen.Wait(1)
-
-		-- GET THE PLAYER VEHICLE --
-		local ped = PlayerPedId()
-		local vehicle = GetVehiclePedIsUsing(ped)
-
-		----- PRIMARY SIREN -----
-		if IsControlJustPressed(0, 19) and PrimaryLightsActivated and not ALSLocked and not SecondarySirenActivated then
-			if PrimarySirenActivated then
-				TriggerServerEvent('ALS:StopPrimarySirenServer', vehicle)
-				PrimarySirenActivated = false
-			else
-				TriggerServerEvent('ALS:PlayPrimarySirenServer', vehicle)
-				PrimarySirenActivated = true
-			end
-		end
-
-		----- SECONDARY SIREN -----
-		if IsControlJustPressed(0, 172) and PrimaryLightsActivated and not ALSLocked and not PrimarySirenActivated then
-            if Config.UseWMServerSirens then
-                if SecondarySirenActivated then
-                    TriggerServerEvent('ALS:StopSecondarySirenServer', vehicle)
-                    SecondarySirenActivated = false
-                else
-                    TriggerServerEvent('ALS:PlaySecondarySirenServer', vehicle)
-                    SecondarySirenActivated = true
-                end
-            else
-                ErrorMessage('No secondary siren available')
-            end
 		end
 	end
 end)

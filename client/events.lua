@@ -5,12 +5,20 @@ AddEventHandler('ALS:PlayPrimarySirenClient', function(vehicle)
         SetVehicleHasMutedSirens(vehicle, true)
         toggleSirenMute(vehicle, true)
         SetVehicleSiren(vehicle, true)
-        local soundId = GetSoundId()
+        activeSounds[vehicle] = GetSoundId()
         PlaySoundFromEntity(soundId, 'SIREN_ALPHA', vehicle, 'DLC_WMSIRENS_SOUNDSET', 0, 0)
-        activeSounds[vehicle] = soundId
     else
-        SetVehicleHasMutedSirens(vehicle, false)
-        toggleSirenMute(vehicle, false)
+        -- Get the sound ID
+        activeSounds[vehicle] = GetSoundId()
+
+        -- Play sound
+        PlaySoundFromEntity(soundId, 'VEHICLES_HORNS_SIREN_1', vehicle, 0, 0, 0)
+
+        -- Set native siren to be muted
+        SetVehicleHasMutedSirens(vehicle, true)
+        toggleSirenMute(vehicle, true)
+
+        -- Enable emergency mode
         SetVehicleSiren(vehicle, true)
     end
 end)
@@ -25,7 +33,9 @@ AddEventHandler('ALS:StopPrimarySirenClient', function(vehicle)
             activeSounds[vehicle] = nil
         end
     else
-        SetVehicleSiren(vehicle, false)
+        StopSound(activeSounds[vehicle])
+        ReleaseSoundId(activeSounds[vehicle])
+        activeSounds[vehicle] = nil
     end 
 end)
 
@@ -36,11 +46,20 @@ AddEventHandler('ALS:PlaySecondarySirenClient', function(vehicle)
         SetVehicleHasMutedSirens(vehicle, true)
         toggleSirenMute(vehicle, true)
         SetVehicleSiren(vehicle, true)
-        local soundId = GetSoundId()
+        activeSounds[vehicle] = GetSoundId()
         PlaySoundFromEntity(soundId, 'SIREN_DELTA', vehicle, 'DLC_WMSIRENS_SOUNDSET', 0, 0)
-        activeSounds[vehicle] = soundId
     else
-        ErrorMessage('No secondary siren available')
+        -- Get the sound ID
+        activeSounds[vehicle] = GetSoundId()
+
+        -- Play sound
+        PlaySoundFromEntity(soundId, 'VEHICLES_HORNS_SIREN_2', vehicle, 0, 0, 0)
+
+        -- Set native siren to be muted
+        SetVehicleHasMutedSirens(vehicle, true)
+
+        -- Enable emergency mode
+        SetVehicleSiren(vehicle, true)
     end
 
 end)
@@ -54,6 +73,10 @@ AddEventHandler('ALS:StopSecondarySirenClient', function(vehicle)
             ReleaseSoundId(soundId)
             activeSounds[vehicle] = nil
         end
+    else
+        StopSound(activeSounds[vehicle])
+        ReleaseSoundId(activeSounds[vehicle])
+        activeSounds[vehicle] = nil
     end
 end)
 

@@ -43,3 +43,9 @@ RegisterServerEvent('ALS:DisableLights')
 AddEventHandler('ALS:DisableLights', function(vehicle)
     TriggerClientEvent('ALS:DisableLights', -1, vehicle)
 end)
+
+----- UPDATE SIREN -----
+RegisterServerEvent('ALS:setSirenState')
+AddEventHandler('ALS:setSirenState', function(state)
+    TriggerClientEvent('ALS:updateSiren', -1, source, state)
+end)

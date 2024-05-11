@@ -90,6 +90,34 @@ RegisterCommand('AG-ALS-FiveM-Warning', function()
 	end
 end)
 
+RegisterCommand('AG-ALS-FiveM-PrimarySiren', function()
+	local ped = PlayerPedId()
+	local vehicle = GetVehiclePedIsUsing(ped)
+	if PrimaryLightsActivated and not ALSLocked and not SecondarySirenActivated then
+		if PrimarySirenActivated then
+			TriggerServerEvent('ALS:StopPrimarySirenServer', vehicle)
+			PrimarySirenActivated = false
+		else
+			TriggerServerEvent('ALS:PlayPrimarySirenServer', vehicle)
+			PrimarySirenActivated = true
+		end
+	end
+end)
+
+RegisterCommand('AG-ALS-FiveM-SecondarySiren', function()
+	local ped = PlayerPedId()
+	local vehicle = GetVehiclePedIsUsing(ped)
+	if PrimaryLightsActivated and not ALSLocked and not PrimarySirenActivated then
+		if SecondarySirenActivated then
+			TriggerServerEvent('ALS:StopSecondarySirenServer', vehicle)
+			SecondarySirenActivated = false
+		else
+			TriggerServerEvent('ALS:PlaySecondarySirenServer', vehicle)
+			SecondarySirenActivated = true
+		end
+	end
+end)
+
 RegisterCommand('ALSPanel', function()
 	ModuleOpen = not ModuleOpen
 end)
