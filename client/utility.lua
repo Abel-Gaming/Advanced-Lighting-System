@@ -21,7 +21,7 @@ Citizen.CreateThread(function()
 		Wait(500)
 	end
     if Config.DisableGameControls then
-
+        --IMMA ADD THIS LATER
     end
     sendChatMessageInfo('Loaded Advanced Lighting System by Abel Gaming')
     print('Loaded Advanced Lighting System by Abel Gaming')
@@ -30,6 +30,12 @@ Citizen.CreateThread(function()
     RegisterKeyMapping('AG-ALS-FiveM-Secondary', 'Toggle Secondary Lights', 'KEYBOARD', 'K')
     RegisterKeyMapping('AG-ALS-FiveM-Warning', 'Toggle Warning Lights', 'KEYBOARD', 'J')
     RegisterKeyMapping('AG-ALS-FiveM-Lock', 'Lock ALS', 'KEYBOARD', 'F24')
+    if Config.UseWMServerSirens then
+        RequestScriptAudioBank('DLC_WMSIRENS\\SIRENPACK_ONE', false)
+    end 
+    Citizen.CreateThread(function()
+        UpdateVehicles()
+    end)
 end)
 
 ----- DRAW PANEL -----
@@ -189,21 +195,24 @@ Citizen.CreateThread(function()
 				TriggerServerEvent('ALS:StopPrimarySirenServer', vehicle)
 				PrimarySirenActivated = false
 			else
-                local soundID = math.random(1, 100)
-				TriggerServerEvent('ALS:PlayPrimarySirenServer', vehicle, soundID)
+				TriggerServerEvent('ALS:PlayPrimarySirenServer', vehicle)
 				PrimarySirenActivated = true
 			end
 		end
 
 		----- SECONDARY SIREN -----
 		if IsControlJustPressed(0, 172) and PrimaryLightsActivated and not ALSLocked and not PrimarySirenActivated then
-			if SecondarySirenActivated then
-				TriggerServerEvent('ALS:StopSecondarySirenServer', vehicle)
-				SecondarySirenActivated = false
-			else
-				TriggerServerEvent('ALS:PlaySecondarySirenServer', vehicle)
-				SecondarySirenActivated = true
-			end
+            if Config.UseWMServerSirens then
+                if SecondarySirenActivated then
+                    TriggerServerEvent('ALS:StopSecondarySirenServer', vehicle)
+                    SecondarySirenActivated = false
+                else
+                    TriggerServerEvent('ALS:PlaySecondarySirenServer', vehicle)
+                    SecondarySirenActivated = true
+                end
+            else
+                ErrorMessage('No secondary siren available')
+            end
 		end
 	end
 end)

@@ -17,10 +17,3 @@ client_scripts {
 	'client/utility.lua',
 	'client/events.lua'
 }
-
-exports {
-	'ArePrimaryLightsActivated',
-	'AreSecondaryLightsActivated',
-	'AreWarningLightsActivated',
-	'IsControlModuleOpen'
-}

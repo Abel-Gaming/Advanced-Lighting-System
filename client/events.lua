@@ -1,37 +1,59 @@
 ----- PRIMARY SIREN -----
 RegisterNetEvent('ALS:PlayPrimarySirenClient')
-AddEventHandler('ALS:PlayPrimarySirenClient', function(vehicle, soundID)
-    SetVehicleSiren(vehicle, true)
+AddEventHandler('ALS:PlayPrimarySirenClient', function(vehicle)
+    if Config.UseWMServerSirens then
+        SetVehicleHasMutedSirens(vehicle, true)
+        toggleSirenMute(vehicle, true)
+        SetVehicleSiren(vehicle, true)
+        local soundId = GetSoundId()
+        PlaySoundFromEntity(soundId, 'SIREN_ALPHA', vehicle, 'DLC_WMSIRENS_SOUNDSET', 0, 0)
+        activeSounds[vehicle] = soundId
+    else
+        SetVehicleHasMutedSirens(vehicle, false)
+        toggleSirenMute(vehicle, false)
+        SetVehicleSiren(vehicle, true)
+    end
 end)
 
 RegisterNetEvent('ALS:StopPrimarySirenClient')
 AddEventHandler('ALS:StopPrimarySirenClient', function(vehicle)
-    SetVehicleSiren(vehicle, false)
+    if Config.UseWMServerSirens then
+        local soundId = activeSounds[vehicle]
+        if soundId then
+            StopSound(soundId)
+            ReleaseSoundId(soundId)
+            activeSounds[vehicle] = nil
+        end
+    else
+        SetVehicleSiren(vehicle, false)
+    end 
 end)
 
 ----- SECONDARY SIREN -----
 RegisterNetEvent('ALS:PlaySecondarySirenClient')
 AddEventHandler('ALS:PlaySecondarySirenClient', function(vehicle)
-    local soundId = GetSoundId()
-    if Config.EnableDebugging then
-        print('Starting Siren: ' .. soundId)
-        print(vehicle)
+    if Config.UseWMServerSirens then
+        SetVehicleHasMutedSirens(vehicle, true)
+        toggleSirenMute(vehicle, true)
+        SetVehicleSiren(vehicle, true)
+        local soundId = GetSoundId()
+        PlaySoundFromEntity(soundId, 'SIREN_DELTA', vehicle, 'DLC_WMSIRENS_SOUNDSET', 0, 0)
+        activeSounds[vehicle] = soundId
+    else
+        ErrorMessage('No secondary siren available')
     end
-    PlaySoundFromEntity(soundId, 'SIREN_DELTA', vehicle, 'DLC_WMSIRENS_SOUNDSET', 0, 0)
-    activeSounds[vehicle] = soundId
+
 end)
 
 RegisterNetEvent('ALS:StopSecondarySirenClient')
 AddEventHandler('ALS:StopSecondarySirenClient', function(vehicle)
-    local soundId = activeSounds[vehicle]
-    if Config.EnableDebugging then
-        print('Stopping Siren: ' .. soundId)
-        print(vehicle)
-    end
-    if soundId then
-        StopSound(soundId)
-        ReleaseSoundId(soundId)
-        activeSounds[vehicle] = nil
+    if Config.UseWMServerSirens then
+        local soundId = activeSounds[vehicle]
+        if soundId then
+            StopSound(soundId)
+            ReleaseSoundId(soundId)
+            activeSounds[vehicle] = nil
+        end
     end
 end)
 
@@ -82,4 +104,23 @@ AddEventHandler('ALS:toggleExtra', function(vehicle, extra)
     local toggle = IsVehicleExtraTurnedOn(vehicle, extra)
     SetVehicleAutoRepairDisabled(vehicle, true)
     SetVehicleExtra(vehicle, extra, toggle)
+end)
+
+----- GET PLAYERS AND EXTRAS -----
+RegisterNetEvent('ALS:GetPlayersAndVehicles')
+AddEventHandler('ALS:GetPlayersAndVehicles', function()
+    local players = GetActivePlayers()
+    
+    for _, playerId in ipairs(players) do
+        local ped = GetPlayerPed(playerId)
+        
+        if IsPedInAnyVehicle(ped, false) then
+            local vehicle = GetVehiclePedIsIn(ped, false)
+            local vehicleModel = GetEntityModel(vehicle)
+            local vehicleName = GetDisplayNameFromVehicleModel(vehicleModel)
+            SetVehicleAutoRepairDisabled(vehicle, true)
+            ForceUseAudioGameObject(vehicle, 'POLICE')
+            print('Set vehicle ' .. vehicleName .. ' ('.. vehicle .. ') to not auto repair')
+        end
+    end
 end)

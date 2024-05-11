@@ -10,7 +10,8 @@ RegisterCommand('AG-ALS-FiveM-Primary', function()
 			local ped = PlayerPedId()
 			if PrimaryLightsActivated then
 				local vehicle = GetVehiclePedIsUsing(ped)
-				TriggerServerEvent('ALS:DisableLights', vehicle)
+				--TriggerServerEvent('ALS:DisableLights', vehicle) --[[ I don't think this needs to be a server call]]
+				DisableActiveExtras(vehicle)
 				if PrimarySirenActivated then
 					TriggerServerEvent('ALS:StopPrimarySirenServer', vehicle)
 					PrimarySirenActivated = false
@@ -25,7 +26,10 @@ RegisterCommand('AG-ALS-FiveM-Primary', function()
 				for k,v in pairs(Config.Vehicles) do
 					if GetEntityModel(vehicle) == GetHashKey(k) then
 						local vehicleConfig = Config.Vehicles[k]
-						TriggerServerEvent('ALS:TogglePrimaryLights', vehicle, vehicleConfig)
+						Citizen.CreateThread(function()
+							EnablePrimaryStage(vehicle, vehicleConfig)
+						end)
+						--TriggerServerEvent('ALS:TogglePrimaryLights', vehicle, vehicleConfig)
 						break
 					end
 				end

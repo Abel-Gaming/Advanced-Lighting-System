@@ -1,10 +1,12 @@
 Config = {}
-Config.EnableDebugging = true -- Useful for editing the script
-Config.DisableGameControls = true -- This will disable the default game controls (Q - Radio Wheel)
+Config.EnableDebugging = false -- Useful for editing the script
+Config.DisableGameControls = true -- This will disable the default game controls (Q - Radio Wheel) [NOT USED CURRENTLY]
+Config.VehicleUpdateTime = 60 -- How often the script will check for players vehicles (In Seconds)
+Config.UseWMServerSirens = false -- https://github.com/Walsheyy/WMServerSirens
 
 Config.Vehicles = {
     ["FBI"] = {
-        Pattern = 1
+        Pattern = 9
     },
     ["FBI2"] = {
         Pattern = 2
@@ -255,6 +257,24 @@ Config.Patterns = {
             {Extras = {9}},
             {Extras = {8}},
             {Extras = {7}}
+        },
+        Warning = {
+            {Extras = {1}},
+            {Extras = {4}}
+        },
+        FlashDelay = 250
+    },
+
+    [9] = {
+        Primary = {
+            {Extras = {1,2,7}},
+            {Extras = {3,4,9}},
+        },
+        Secondary = {
+            {Extras = {4}}, -- First Flash
+            {Extras = {3}}, -- Second Flash
+            {Extras = {2}}, -- Third Flash
+            {Extras = {1}}, -- Fourth Flash
         },
         Warning = {
             {Extras = {1}},

@@ -1,7 +1,7 @@
 ----- PRIMARY SIREN -----
 RegisterServerEvent('ALS:PlayPrimarySirenServer')
-AddEventHandler('ALS:PlayPrimarySirenServer', function(vehicle, soundID)
-    TriggerClientEvent('ALS:PlayPrimarySirenClient', -1, vehicle, soundID)
+AddEventHandler('ALS:PlayPrimarySirenServer', function(vehicle)
+    TriggerClientEvent('ALS:PlayPrimarySirenClient', -1, vehicle)
 end)
 
 RegisterServerEvent('ALS:StopPrimarySirenServer')

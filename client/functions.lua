@@ -1,5 +1,3 @@
-RequestScriptAudioBank('DLC_WMSIRENS\\SIRENPACK_ONE', false)
-
 function getClosestRoad(coords)
     local _, closestRoad, _, _ = GetClosestRoad(coords.x, coords.y, coords.z, 1, 1)
     return closestRoad
@@ -103,13 +101,19 @@ function EnablePrimaryStage(vehicle, vehicleConfig)
     while PrimaryLightsActivated do
         Citizen.Wait(1)
         SetVehicleEngineOn(vehicle, true, true, false)
+        if Config.UseWMServerSirens then
+            toggleSirenMute(vehicle, true)
+            SetVehicleHasMutedSirens(vehicle, true)
+            SetVehicleSiren(vehicle, true)
+        end
         local lastFlash = {extras = {}}
         local pattern = Config.Patterns[vehicleConfig.Pattern]
         if pattern then
             for _, stage in ipairs(pattern.Primary) do
                 for _, extraIndex in ipairs(stage.Extras) do
                     SetVehicleAutoRepairDisabled(vehicle, true)
-                    ToggleExtra(vehicle, extraIndex, 0)
+                    ToggleExtra(vehicle, extraIndex, 0) --[[ If doens't really matter which one you enable here ]]
+                    --TriggerEvent('ALS:toggleExtra', vehicle, extraIndex) --[[ This one is a little slower because it does run a check if the extra exist before enabling it ]]
                     table.insert(lastFlash.extras, extraIndex)
                 end
                 Citizen.Wait(pattern.FlashDelay)
@@ -125,7 +129,7 @@ end
 
 function EnableSecondaryStage(vehicle, vehicleConfig)
     local ped = PlayerPedId()
-    while AreSecondaryLightsActivated() do
+    while SecondaryLightsActivated do
         Citizen.Wait(1)
         SetVehicleEngineOn(vehicle, true, true, false)
         local lastFlash = {extras = {}}
@@ -150,7 +154,7 @@ end
 
 function EnableWarningStage(vehicle, vehicleConfig)
     local ped = PlayerPedId()
-    while AreWarningLightsActivated() do
+    while WarningLightsActivated do
         Citizen.Wait(1)
         SetVehicleEngineOn(vehicle, true, true, false)
         local lastFlash = {extras = {}}
@@ -229,7 +233,15 @@ function ToggleExtra(vehicle, extra, toggle)
     SetVehicleExtra(vehicle, extra, value)
 end
 
-local function ToggleMisc(vehicle, misc, toggle)
+function ToggleMisc(vehicle, misc, toggle)
     SetVehicleModKit(vehicle, 0)
     SetVehicleMod(vehicle, misc, toggle, false)
+end
+
+function UpdateVehicles()
+    while true do
+        Citizen.Wait(1)
+        TriggerEvent('ALS:GetPlayersAndVehicles')
+        Citizen.Wait(Config.VehicleUpdateTime * 1000)
+    end
 end
