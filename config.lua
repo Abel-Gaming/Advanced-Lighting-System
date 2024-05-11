@@ -2,7 +2,7 @@ Config = {}
 Config.EnableDebugging = false -- Useful for editing the script
 Config.DisableGameControls = true -- This will disable the default game controls (Q - Radio Wheel) [NOT USED CURRENTLY]
 Config.VehicleUpdateTime = 60 -- How often the script will check for players vehicles (In Seconds)
-Config.UseWMServerSirens = false -- https://github.com/Walsheyy/WMServerSirens
+Config.UseWMServerSirens = false -- https://github.com/Walsheyy/WMServerSirens (This is still being worked on, works client sided but others players cannot hear the sirens)
 
 Config.Vehicles = {
     ["FBI"] = {
