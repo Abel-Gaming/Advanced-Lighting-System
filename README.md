@@ -4,7 +4,7 @@ ALS is a spin off of FiveM ELS by MrDaGree. With ELS being so outdated and no on
 
 At this time, the resource is available to the public; however, is missing some key features in early development. Please stay tuned to see more updates overtime!
 
-Get Support on [Discord](https://discord.gg/ur8vvgZJsy)
+Get Support on [Discord](https://discord.gg/ur8vvgZJsy) in the ALS Support channel!
 
 A preview is available here: [YouTube](https://youtu.be/X5OnLkTTM64)
 
