@@ -8,6 +8,7 @@ Get Support on [Discord](https://discord.gg/ur8vvgZJsy) in the ALS Support chann
 
 A preview is available here: [YouTube](https://youtu.be/X5OnLkTTM64)
 
+## Want to see what is currently being worked on? Click [here](https://github.com/Abel-Gaming/Advanced-Lighting-System/blob/main/WIP.md)
 ## Want to try it out and need help? Check out the Wiki [here](https://github.com/Abel-Gaming/Advanced-Lighting-System/wiki)
 
 ![Logo](https://raw.githubusercontent.com/Abel-Gaming/Advanced-Lighting-System/main/Media/Logo.png)
