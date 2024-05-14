@@ -1,8 +1,3 @@
-function getClosestRoad(coords)
-    local _, closestRoad, _, _ = GetClosestRoad(coords.x, coords.y, coords.z, 1, 1)
-    return closestRoad
-end
-
 function GetHeadlightStatus(vehicle)
     local retval, lightsOn, highbeamsOn = GetVehicleLightsState(vehicle)
     return lightsOn
@@ -11,20 +6,6 @@ end
 function GetHeadlightHighBeamStatus(vehicle)
     local retval, lightsOn, highbeamsOn = GetVehicleLightsState(vehicle)
     return highbeamsOn
-end
-
-function spawnObject(objectName, coords)
-    local modelHash = GetHashKey(objectName)
-    
-    RequestModel(modelHash)
-    while not HasModelLoaded(modelHash) do
-        Citizen.Wait(0)
-    end
-    
-    local object = CreateObject(modelHash, coords.x, coords.y, coords.z, true, true, true)
-    SetModelAsNoLongerNeeded(modelHash)
-    
-    return object
 end
 
 function ErrorMessage(errorMessage)
@@ -113,7 +94,6 @@ function EnablePrimaryStage(vehicle, vehicleConfig)
                 for _, extraIndex in ipairs(stage.Extras) do
                     SetVehicleAutoRepairDisabled(vehicle, true)
                     ToggleExtra(vehicle, extraIndex, 0) --[[ If doens't really matter which one you enable here ]]
-                    --TriggerEvent('ALS:toggleExtra', vehicle, extraIndex) --[[ This one is a little slower because it does run a check if the extra exist before enabling it ]]
                     table.insert(lastFlash.extras, extraIndex)
                 end
                 Citizen.Wait(pattern.FlashDelay)
@@ -238,10 +218,38 @@ function ToggleMisc(vehicle, misc, toggle)
     SetVehicleMod(vehicle, misc, toggle, false)
 end
 
-function UpdateVehicles()
-    while true do
-        Citizen.Wait(1)
-        TriggerEvent('ALS:GetPlayersAndVehicles')
-        Citizen.Wait(Config.VehicleUpdateTime * 1000)
+function isInTable(tbl, val)
+    for _, v in ipairs(tbl) do
+        if v == val then
+            return true
+        end
+    end
+    return false
+end
+
+function TogglePrimaryStage(vehicle, vehicleConfig, vehicleData)
+    while vehicleData.PrimaryLights do
+        Citizen.Wait(1) -- Wait to prevent crash
+
+        -- Set the vehicle engine on
+        SetVehicleEngineOn(vehicleData.entity, true, true, false) 
+
+        local lastFlash = {extras = {}}
+        local pattern = Config.Patterns[vehicleConfig.Pattern]
+        if pattern then
+            for _, stage in ipairs(pattern.Primary) do
+                for _, extraIndex in ipairs(stage.Extras) do
+                    SetVehicleAutoRepairDisabled(vehicleData.entity, true)
+                    ToggleExtra(vehicleData.entity, extraIndex, 0) --[[ If doens't really matter which one you enable here ]]
+                    table.insert(lastFlash.extras, extraIndex)
+                end
+                Citizen.Wait(pattern.FlashDelay)
+                for _, v in ipairs(lastFlash.extras) do
+                    SetVehicleAutoRepairDisabled(vehicleData.entity, 1)
+                    ToggleExtra(vehicleData.entity, v, false)
+                end
+                lastFlash.extras = {}
+            end
+        end
     end
 end

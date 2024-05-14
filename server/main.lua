@@ -22,8 +22,8 @@ end)
 
 ----- PRIMARY LIGHTS -----
 RegisterServerEvent('ALS:TogglePrimaryLights')
-AddEventHandler('ALS:TogglePrimaryLights', function(vehicle, vehicleConfig)
-    TriggerClientEvent('ALS:TogglePrimaryLights', -1, vehicle, vehicleConfig)
+AddEventHandler('ALS:TogglePrimaryLights', function(vehicle, vehicleConfig, vehicleData)
+    TriggerClientEvent('ALS:TogglePrimaryLights', -1, vehicle, vehicleConfig, vehicleData)
 end)
 
 ----- SECONDARY LIGHTS -----
@@ -44,8 +44,8 @@ AddEventHandler('ALS:DisableLights', function(vehicle)
     TriggerClientEvent('ALS:DisableLights', -1, vehicle)
 end)
 
------ UPDATE SIREN -----
-RegisterServerEvent('ALS:setSirenState')
-AddEventHandler('ALS:setSirenState', function(state)
-    TriggerClientEvent('ALS:updateSiren', -1, source, state)
+----- BASE EVENT : ENTERED VEHICLE -----
+RegisterNetEvent('baseevents:enteredVehicle')
+AddEventHandler('baseevents:enteredVehicle', function(vehicle, currentSeat, vehicleDisplayName)
+    TriggerClientEvent('ALS:PlayerEnteredVehicle', -1, source, vehicle, currentSeat, vehicleDisplayName)
 end)

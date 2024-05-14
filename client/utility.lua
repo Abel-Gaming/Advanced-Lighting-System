@@ -10,6 +10,7 @@ SecondarySirenActivated = false
 SecondarySirenID = nil
 
 activeSounds = {}
+activeVehicles = {}
 
 -- MISC
 ALSLocked = false
@@ -35,9 +36,6 @@ Citizen.CreateThread(function()
     if Config.UseWMServerSirens then
         RequestScriptAudioBank('DLC_WMSIRENS\\SIRENPACK_ONE', false)
     end 
-    Citizen.CreateThread(function()
-        UpdateVehicles()
-    end)
 end)
 
 ----- DRAW PANEL -----

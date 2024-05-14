@@ -2,7 +2,7 @@ RegisterCommand('AG-ALS-FiveM-Lock', function()
 	ALSLocked = not ALSLocked
 end)
 
-RegisterCommand('AG-ALS-FiveM-Primary', function()
+RegisterCommand('AG-ALS-FiveM-Primary-Old', function()
 	local ped = PlayerPedId()
 	local veh = GetVehiclePedIsUsing(ped)
 	if GetVehicleClass(veh) == 18 then
@@ -10,7 +10,6 @@ RegisterCommand('AG-ALS-FiveM-Primary', function()
 			local ped = PlayerPedId()
 			if PrimaryLightsActivated then
 				local vehicle = GetVehiclePedIsUsing(ped)
-				--TriggerServerEvent('ALS:DisableLights', vehicle) --[[ I don't think this needs to be a server call]]
 				DisableActiveExtras(vehicle)
 				if PrimarySirenActivated then
 					TriggerServerEvent('ALS:StopPrimarySirenServer', vehicle)
@@ -29,7 +28,6 @@ RegisterCommand('AG-ALS-FiveM-Primary', function()
 						Citizen.CreateThread(function()
 							EnablePrimaryStage(vehicle, vehicleConfig)
 						end)
-						--TriggerServerEvent('ALS:TogglePrimaryLights', vehicle, vehicleConfig)
 						break
 					end
 				end
@@ -37,6 +35,56 @@ RegisterCommand('AG-ALS-FiveM-Primary', function()
 			end
 		end
 	end
+end)
+
+RegisterCommand('AG-ALS-FiveM-Primary', function()
+    local ped = PlayerPedId()
+    local vehicle = GetVehiclePedIsUsing(ped)
+
+    -- Make sure that the vehicle exists in the activeVehicles Table
+    local vehicleFound = false
+    for _, data in ipairs(activeVehicles) do
+        if data.entity == vehicle then
+            vehicleFound = true
+            break
+        end
+    end
+
+    if not vehicleFound then
+        local myServerId = GetPlayerServerId(PlayerId())
+        local vehicleData = {
+            entity = vehicle,
+            owner = myServerId,
+            PrimaryLights = false,
+            SecondaryLights = false,
+            WarningLights = false,
+            PrimarySiren = false,
+            SecondrySiren = false,
+        }
+        table.insert(activeVehicles, vehicleData)
+        SetVehicleAutoRepairDisabled(vehicle, true)
+    else
+    end
+
+    if GetVehicleClass(vehicle) == 18 then
+        for _, data in ipairs(activeVehicles) do
+            if data.entity == vehicle then
+                if data.PrimaryLights then
+                    data.PrimaryLights = false
+                else
+                    data.PrimaryLights = true
+                    for k,v in pairs(Config.Vehicles) do
+                        if GetEntityModel(data.entity) == GetHashKey(k) then
+                            local vehicleConfig = Config.Vehicles[k]
+                            Citizen.CreateThread(function()
+                                TogglePrimaryStage(data.entity, vehicleConfig, data)
+                            end)
+                        end
+                    end
+                end
+            end
+        end
+    end
 end)
 
 RegisterCommand('AG-ALS-FiveM-Secondary', function()

@@ -2,11 +2,18 @@
 RegisterNetEvent('ALS:PlayPrimarySirenClient')
 AddEventHandler('ALS:PlayPrimarySirenClient', function(vehicle)
     if Config.UseWMServerSirens then
-        SetVehicleHasMutedSirens(vehicle, true)
-        toggleSirenMute(vehicle, true)
-        SetVehicleSiren(vehicle, true)
+        -- Get the sound ID
         activeSounds[vehicle] = GetSoundId()
+
+        -- Play sound
         PlaySoundFromEntity(soundId, 'SIREN_ALPHA', vehicle, 'DLC_WMSIRENS_SOUNDSET', 0, 0)
+
+        -- Mute the native siren
+        SetVehicleHasMutedSirens(vehicle, 0)
+        toggleSirenMute(vehicle, 0)
+
+        -- Enable emergency mode
+        SetVehicleSiren(vehicle, 0)
     else
         -- Get the sound ID
         activeSounds[vehicle] = GetSoundId()
@@ -27,11 +34,9 @@ RegisterNetEvent('ALS:StopPrimarySirenClient')
 AddEventHandler('ALS:StopPrimarySirenClient', function(vehicle)
     if Config.UseWMServerSirens then
         local soundId = activeSounds[vehicle]
-        if soundId then
-            StopSound(soundId)
-            ReleaseSoundId(soundId)
-            activeSounds[vehicle] = nil
-        end
+        StopSound(soundId)
+        ReleaseSoundId(soundId)
+        activeSounds[vehicle] = nil
     else
         StopSound(activeSounds[vehicle])
         ReleaseSoundId(activeSounds[vehicle])
@@ -82,9 +87,9 @@ end)
 
 ----- PRIMARY LIGHTS -----
 RegisterNetEvent('ALS:TogglePrimaryLights')
-AddEventHandler('ALS:TogglePrimaryLights', function(vehicle, vehicleConfig)
+AddEventHandler('ALS:TogglePrimaryLights', function(vehicle, vehicleConfig, vehicleData)
     Citizen.CreateThread(function()
-        EnablePrimaryStage(vehicle, vehicleConfig)
+        TogglePrimaryStage(vehicle, vehicleConfig, vehicleData)
     end)
 end)
 
@@ -142,8 +147,30 @@ AddEventHandler('ALS:GetPlayersAndVehicles', function()
             local vehicleModel = GetEntityModel(vehicle)
             local vehicleName = GetDisplayNameFromVehicleModel(vehicleModel)
             SetVehicleAutoRepairDisabled(vehicle, true)
-            ForceUseAudioGameObject(vehicle, 'POLICE')
-            print('Set vehicle ' .. vehicleName .. ' ('.. vehicle .. ') to not auto repair')
         end
     end
+end)
+
+----- DISABLE AUTO REPAIR AND ADD VEHICLE TO VEHICLES LIST -----
+RegisterNetEvent('ALS:PlayerEnteredVehicle')
+AddEventHandler('ALS:PlayerEnteredVehicle', function(playerID, vehicle, vehicleSeat, vehicleDisplayName)
+    if vehicleSeat == -1 then
+        if GetVehicleClass(vehicle) == 18 then
+            if not isInTable(activeVehicles, vehicle) then
+                local vehicleData = {
+                    entity = vehicle,
+                    seat = vehicleSeat,
+                    displayName = vehicleDisplayName,
+                    owner = playerID,
+                    PrimaryLights = false,
+                    SecondaryLights = false,
+                    WarningLights = false,
+                    PrimarySiren = false,
+                    SecondrySiren = false
+                }
+                table.insert(activeVehicles, vehicleData)
+                SetVehicleAutoRepairDisabled(vehicle, true)
+            end
+        end
+    end 
 end)
