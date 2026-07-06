@@ -1,6 +1,7 @@
 Config = {}
-Config.EnableDebugging = true -- Useful for editing the script
-Config.DisableGameControls = true -- This will disable the default game controls (Q - Radio Wheel) [NOT USED CURRENTLY]
+Config.EnableDebugging = false -- Useful for editing the script
+Config.DisableGameControls = false -- This will disable the default game controls (Q - Radio Wheel) [NOT USED CURRENTLY]
+Config.VehicleUpdateTime = 60 -- How often the script will check for players vehicles (In Seconds)
 Config.UseWMServerSirens = false -- https://github.com/Walsheyy/WMServerSirens
 
 Config.Vehicles = {
@@ -78,6 +79,13 @@ Config.Vehicles = {
     },
     ["SAHP8"] = {
         Pattern = 7
+    },
+    ["LCEMS"] = {
+        Pattern = 7,
+        EnvironmentLights = {
+            { Bone = "extra_1", Offset = vector3(0.0, 0.0, 0.0), Color = "red" },
+            { Bone = "extra_2", Offset = vector3(0.0, 0.0, 0.0), Color = "red" },
+        }
     },
 }
 
@@ -281,4 +289,8 @@ Config.Patterns = {
         },
         FlashDelay = 250
     }
+}
+
+Config.DefaultEnvironmentLights = {
+
 }
