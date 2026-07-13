@@ -24,6 +24,20 @@ AddEventHandler('ALS:StopSecondarySirenServer', function(netId)
     TriggerClientEvent('ALS:StopSecondarySirenClient', -1, netId)
 end)
 
+----- SIREN TONE SWITCH -----
+RegisterServerEvent('ALS:SetSirenToneServer')
+AddEventHandler('ALS:SetSirenToneServer', function(netId, sirenType, alt)
+    if not netId then return end
+    TriggerClientEvent('ALS:SetSirenToneClient', -1, netId, sirenType, alt)
+end)
+
+----- FAST EXTRAS PUSH -----
+RegisterServerEvent('ALS:SetExtrasServer')
+AddEventHandler('ALS:SetExtrasServer', function(netId, extraIds, state)
+    if not netId or not extraIds then return end
+    TriggerClientEvent('ALS:SetExtrasClient', -1, netId, extraIds, state)
+end)
+
 -- NOTE: 'ALS:TogglePrimaryLights' / 'ALS:ToggleSecondaryLights' /
 -- 'ALS:ToggleWarningLights' / 'ALS:DisableLights' relays have been removed.
 -- They forwarded a raw client-side entity handle to every other client via

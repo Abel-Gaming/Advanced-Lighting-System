@@ -109,3 +109,28 @@ end)
 RegisterCommand('ALSPanel', function()
 	ModuleOpen = not ModuleOpen
 end)
+
+----- HOLD-TO-CHANGE SIREN TONE (matches vanilla GTA horn-hold behaviour) -----
+Citizen.CreateThread(function()
+    local toneHeld = false
+
+    while true do
+        Citizen.Wait(0)
+        local sirenType = PrimarySirenActivated and 'Primary' or (SecondarySirenActivated and 'Secondary' or nil)
+
+        if sirenType then
+            -- Suppress the actual horn sound while a siren is active, same
+            -- as vanilla does, so holding the key doesn't also honk.
+            DisableControlAction(0, Config.SirenToneControl, true)
+
+            local held = IsControlPressed(0, Config.SirenToneControl)
+            if held ~= toneHeld then
+                toneHeld = held
+                local vehicle = GetVehiclePedIsUsing(PlayerPedId())
+                TriggerServerEvent('ALS:SetSirenToneServer', GetVehicleNetId(vehicle), sirenType, held)
+            end
+        elseif toneHeld then
+            toneHeld = false
+        end
+    end
+end)

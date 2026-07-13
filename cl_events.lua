@@ -1,34 +1,41 @@
------ PRIMARY SIREN -----
+----- SIREN SOUND HELPERS -----
 -- Sound playback is local to each client, so this DOES need to travel over
 -- the network - but as a netId (safe across clients), not a raw entity
--- handle. `soundId` is now actually used (the original referenced an
--- undefined global, so no sound ever played).
-RegisterNetEvent('ALS:PlayPrimarySirenClient')
-AddEventHandler('ALS:PlayPrimarySirenClient', function(netId)
-    local vehicle = GetVehicleFromNetId(netId)
-    if not vehicle then return end
-
+-- handle.
+local function playSirenSound(netId, vehicle, soundName)
     local soundId = GetSoundId()
     activeSounds[netId] = soundId
 
-    SetVehicleHasMutedSirens(vehicle, true)
-    SetVehicleSiren(vehicle, true)
-
     if Config.UseWMServerSirens then
-        PlaySoundFromEntity(soundId, 'SIREN_ALPHA', vehicle, 'DLC_WMSIRENS_SOUNDSET', 0, 0)
+        PlaySoundFromEntity(soundId, soundName, vehicle, 'DLC_WMSIRENS_SOUNDSET', 0, 0)
     else
-        PlaySoundFromEntity(soundId, 'VEHICLES_HORNS_SIREN_1', vehicle, 0, 0, 0)
+        PlaySoundFromEntity(soundId, soundName, vehicle, 0, 0, 0)
     end
-end)
+end
 
-RegisterNetEvent('ALS:StopPrimarySirenClient')
-AddEventHandler('ALS:StopPrimarySirenClient', function(netId)
+local function stopSirenSound(netId)
     local soundId = activeSounds[netId]
     if soundId then
         StopSound(soundId)
         ReleaseSoundId(soundId)
         activeSounds[netId] = nil
     end
+end
+
+----- PRIMARY SIREN -----
+RegisterNetEvent('ALS:PlayPrimarySirenClient')
+AddEventHandler('ALS:PlayPrimarySirenClient', function(netId)
+    local vehicle = GetVehicleFromNetId(netId)
+    if not vehicle then return end
+
+    SetVehicleHasMutedSirens(vehicle, true)
+    SetVehicleSiren(vehicle, true)
+    playSirenSound(netId, vehicle, Config.SirenTones.Primary.Normal)
+end)
+
+RegisterNetEvent('ALS:StopPrimarySirenClient')
+AddEventHandler('ALS:StopPrimarySirenClient', function(netId)
+    stopSirenSound(netId)
 end)
 
 ----- SECONDARY SIREN -----
@@ -37,27 +44,32 @@ AddEventHandler('ALS:PlaySecondarySirenClient', function(netId)
     local vehicle = GetVehicleFromNetId(netId)
     if not vehicle then return end
 
-    local soundId = GetSoundId()
-    activeSounds[netId] = soundId
-
     SetVehicleHasMutedSirens(vehicle, true)
     SetVehicleSiren(vehicle, true)
-
-    if Config.UseWMServerSirens then
-        PlaySoundFromEntity(soundId, 'SIREN_DELTA', vehicle, 'DLC_WMSIRENS_SOUNDSET', 0, 0)
-    else
-        PlaySoundFromEntity(soundId, 'VEHICLES_HORNS_SIREN_2', vehicle, 0, 0, 0)
-    end
+    playSirenSound(netId, vehicle, Config.SirenTones.Secondary.Normal)
 end)
 
 RegisterNetEvent('ALS:StopSecondarySirenClient')
 AddEventHandler('ALS:StopSecondarySirenClient', function(netId)
-    local soundId = activeSounds[netId]
-    if soundId then
-        StopSound(soundId)
-        ReleaseSoundId(soundId)
-        activeSounds[netId] = nil
-    end
+    stopSirenSound(netId)
+end)
+
+----- SIREN TONE SWITCH (hold-to-change-tone, like vanilla GTA) -----
+-- Only fires while a siren is actually playing for this vehicle (guarded
+-- by activeSounds[netId] below), so a stray/late event can't start a sound
+-- out of nowhere.
+RegisterNetEvent('ALS:SetSirenToneClient')
+AddEventHandler('ALS:SetSirenToneClient', function(netId, sirenType, alt)
+    if not activeSounds[netId] then return end
+
+    local vehicle = GetVehicleFromNetId(netId)
+    if not vehicle then return end
+
+    local toneSet = Config.SirenTones[sirenType]
+    if not toneSet then return end
+
+    stopSirenSound(netId)
+    playSirenSound(netId, vehicle, alt and toneSet.Alt or toneSet.Normal)
 end)
 
 -- NOTE ON LIGHTS: 'ALS:TogglePrimaryLights' / 'ALS:ToggleSecondaryLights' /
@@ -70,6 +82,20 @@ end)
 -- network sync when set by the controlling (driving) client, so lights are
 -- now handled purely locally in cl_main.lua / cl_functions.lua - no
 -- network relay needed or wanted.
+
+----- FAST EXTRAS PUSH (fixes laggy/choppy lights on other players' screens) -----
+-- timeoutMs=0 here on purpose: if this vehicle isn't streamed in for us
+-- yet, there's nothing to draw anyway, so don't block this event handler
+-- waiting on it - just skip and let the next push (a few hundred ms later)
+-- pick it up once it streams in.
+RegisterNetEvent('ALS:SetExtrasClient')
+AddEventHandler('ALS:SetExtrasClient', function(netId, extraIds, state)
+    local vehicle = GetVehicleFromNetId(netId, 0)
+    if not vehicle then return end
+    for _, extraIndex in ipairs(extraIds) do
+        ToggleExtra(vehicle, extraIndex, state)
+    end
+end)
 
 ----- TOGGLE A SINGLE EXTRA (manual/panel use) -----
 RegisterNetEvent('ALS:toggleExtra')

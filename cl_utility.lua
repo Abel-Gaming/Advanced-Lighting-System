@@ -77,23 +77,14 @@ end)
 -- can't be driven by our own PrimaryLightsActivated/etc flags (those only
 -- exist on the driver's client). Instead every client independently checks
 -- each nearby configured vehicle's actual extra state - which IS synced by
--- the game - and runs the glow locally if any of that vehicle's emergency
--- extras (1-9) are currently on. That covers Primary, Secondary, and
--- Warning automatically, for any vehicle, seen consistently by everyone.
+-- the game. This thread just decides whether the effect should be running
+-- at all for a vehicle (any of extras 1-9 on); the actual flash timing per
+-- light is handled every frame inside CreateEnvironmentLight itself, based
+-- on each light's own `Extras` list (see config.lua).
 
 local vehicleConfigByHash = {}
 for model, cfg in pairs(Config.Vehicles) do
     vehicleConfigByHash[GetHashKey(model)] = cfg
-end
-
-local function isShowingEmergencyLights(vehicle)
-    if not DoesEntityExist(vehicle) then return false end
-    for extraId = 1, 9 do
-        if DoesExtraExist(vehicle, extraId) and IsVehicleExtraTurnedOn(vehicle, extraId) then
-            return true
-        end
-    end
-    return false
 end
 
 Citizen.CreateThread(function()
@@ -103,7 +94,7 @@ Citizen.CreateThread(function()
         -- Stop lights on vehicles that no longer qualify (extras off, or
         -- vehicle gone).
         for vehicle in pairs(ActiveEnvironmentLights) do
-            if not isShowingEmergencyLights(vehicle) then
+            if not IsShowingEmergencyLights(vehicle) then
                 StopEnvironmentLight(vehicle)
             end
         end
@@ -113,7 +104,7 @@ Citizen.CreateThread(function()
         for _, vehicle in ipairs(GetGamePool('CVehicle')) do
             if not ActiveEnvironmentLights[vehicle] then
                 local cfg = vehicleConfigByHash[GetEntityModel(vehicle)]
-                if cfg and isShowingEmergencyLights(vehicle) then
+                if cfg and IsShowingEmergencyLights(vehicle) then
                     StartEnvironmentLights(vehicle, cfg)
                 end
             end
@@ -217,6 +208,17 @@ Citizen.CreateThread(function()
                     end
                     Draw("HL", 0, 0, 0, 255, 0.838 + panelOffsetX, 0.86 + panelOffsetY, 0.25, 0.25, 1, true, 0)
 
+                    -- ALS Lock
+                    _DrawRect(0.870 + panelOffsetX, 0.88 + panelOffsetY, 0.028, 0.045, 0, 0, 0, 225, 0)
+                    if ALSLocked then
+                        _DrawRect(0.870 + panelOffsetX, 0.871 + panelOffsetY, 0.025, 0.02, 219, 40, 40, 225, 0)
+                        Draw("--", 219, 40, 40, 255, 0.870 + panelOffsetX, 0.88 + panelOffsetY, 0.25, 0.25, 1, true, 0)
+                    else
+                        _DrawRect(0.870 + panelOffsetX, 0.871 + panelOffsetY, 0.025, 0.02, 186, 186, 186, 225, 0)
+                        Draw("--", 255, 255, 255, 255, 0.870 + panelOffsetX, 0.88 + panelOffsetY, 0.25, 0.25, 1, true, 0)
+                    end
+                    Draw("LOCK", 0, 0, 0, 255, 0.870 + panelOffsetX, 0.86 + panelOffsetY, 0.25, 0.25, 1, true, 0)
+
                     -- PRIMARY SIREN
                     _DrawRect(0.742 + panelOffsetX, 0.93 + panelOffsetY, 0.028, 0.045, 0, 0, 0, 225, 0)
                     Draw("--", 255, 255, 255, 255, 0.7423 + panelOffsetX, 0.93 + panelOffsetY, 0.25, 0.25, 1, true, 0)
@@ -240,23 +242,4 @@ Citizen.CreateThread(function()
             end
         end
     end
-end)
-
------ ALS LOCKED -----
-Citizen.CreateThread(function()
-	while true do
-		Citizen.Wait(0)
-		if ALSLocked then
-			SetTextFont(0)
-            SetTextProportional(1)
-            SetTextScale(0.0, 0.3)
-            SetTextDropshadow(0, 0, 0, 0, 255)
-            SetTextEdge(1, 0, 0, 0, 255)
-            SetTextDropShadow()
-            SetTextOutline()
-            SetTextEntry("STRING")
-            AddTextComponentString("~r~ALS Locked")
-            DrawText(0.005, 0.5)
-		end
-	end
 end)
