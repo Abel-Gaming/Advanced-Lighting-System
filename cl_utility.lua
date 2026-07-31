@@ -4,11 +4,12 @@ SecondaryLightsActivated = false
 WarningLightsActivated = false
 
 -- SIRENS
-PrimarySirenActivated = false
-SecondarySirenActivated = false
+-- nil = off, otherwise 1-4 (see Config.SirenTones in config.lua). Only one
+-- tone can play at a time.
+ActiveSirenTone = nil
 
--- Sounds are keyed by vehicle NETWORK ID (stable across clients), not by
--- the local entity handle.
+-- Sounds are keyed by the local vehicle entity handle (see the
+-- AddStateBagChangeHandler in cl_events.lua).
 activeSounds = {}
 
 -- MISC
@@ -24,17 +25,14 @@ Citizen.CreateThread(function()
     sendChatMessageInfo('Loaded Advanced Lighting System by Abel Gaming')
     print('Loaded Advanced Lighting System by Abel Gaming')
 
-    -- NOTE: the old script called DisableActiveExtras() with no vehicle
-    -- argument here, which did nothing useful (and could error). Removed.
-
     RegisterKeyMapping('AG-ALS-FiveM-Primary', 'Toggle Primary Lights', 'KEYBOARD', 'Q')
     RegisterKeyMapping('AG-ALS-FiveM-Secondary', 'Toggle Secondary Lights', 'KEYBOARD', 'K')
     RegisterKeyMapping('AG-ALS-FiveM-Warning', 'Toggle Warning Lights', 'KEYBOARD', 'J')
     RegisterKeyMapping('AG-ALS-FiveM-Lock', 'Lock ALS', 'KEYBOARD', 'F24')
-    RegisterKeyMapping('AG-ALS-FiveM-PrimarySiren', 'Toggle Primary Siren', 'KEYBOARD', 'LALT')
-    -- Was also bound to LALT in the original script, which meant the two
-    -- commands fought over the same key by default.
-    RegisterKeyMapping('AG-ALS-FiveM-SecondarySiren', 'Toggle Secondary Siren', 'KEYBOARD', 'Y')
+    RegisterKeyMapping('AG-ALS-FiveM-Siren1', 'Toggle Siren Tone 1', 'KEYBOARD', 'LALT')
+    RegisterKeyMapping('AG-ALS-FiveM-Siren2', 'Toggle Siren Tone 2', 'KEYBOARD', 'Y')
+    RegisterKeyMapping('AG-ALS-FiveM-Siren3', 'Toggle Siren Tone 3', 'KEYBOARD', 'H')
+    RegisterKeyMapping('AG-ALS-FiveM-Siren4', 'Toggle Siren Tone 4', 'KEYBOARD', 'N')
 
     if Config.UseWMServerSirens then
         RequestScriptAudioBank('DLC_WMSIRENS\\SIRENPACK_ONE', false)
@@ -44,44 +42,32 @@ Citizen.CreateThread(function()
 end)
 
 ----- AUTO-OFF IF THE PLAYER LEAVES THE VEHICLE -----
--- Entity handles get recycled by the game once an entity is deleted. If a
--- player exited the vehicle (or it despawned) while lights/sirens were on,
--- the old script kept flashing extras against that stale handle, which can
--- end up hitting a completely unrelated entity that reused the same number.
-Citizen.CreateThread(function()
-    while true do
-        Citizen.Wait(500)
-        if PrimaryLightsActivated or SecondaryLightsActivated or WarningLightsActivated then
-            local ped = PlayerPedId()
-            if not IsPedInAnyVehicle(ped, false) then
-                local veh = GetVehiclePedIsUsing(ped)
-                DisableActiveExtras(veh)
-                if PrimarySirenActivated then
-                    TriggerServerEvent('ALS:StopPrimarySirenServer', GetVehicleNetId(veh))
+if Config.AutoOff then
+    Citizen.CreateThread(function()
+        while true do
+            Citizen.Wait(500)
+            if PrimaryLightsActivated or SecondaryLightsActivated or WarningLightsActivated then
+                local ped = PlayerPedId()
+                if not IsPedInAnyVehicle(ped, false) then
+                    local veh = GetVehiclePedIsUsing(ped)
+                    if PrimaryLightsActivated then Entity(veh).state:set('elsPrimary', nil, true) end
+                    if SecondaryLightsActivated then Entity(veh).state:set('elsSecondary', nil, true) end
+                    if WarningLightsActivated then Entity(veh).state:set('elsWarning', nil, true) end
+                    DisableActiveExtras(veh)
+                    if ActiveSirenTone then
+                        ClearVehicleSirenState(veh)
+                        ActiveSirenTone = nil
+                    end
+                    PrimaryLightsActivated = false
+                    SecondaryLightsActivated = false
+                    WarningLightsActivated = false
                 end
-                if SecondarySirenActivated then
-                    TriggerServerEvent('ALS:StopSecondarySirenServer', GetVehicleNetId(veh))
-                end
-                PrimaryLightsActivated = false
-                SecondaryLightsActivated = false
-                WarningLightsActivated = false
-                PrimarySirenActivated = false
-                SecondarySirenActivated = false
             end
         end
-    end
-end)
+    end)
+end
 
 ----- ENVIRONMENT LIGHTS -----
--- DrawLightWithRangeAndShadow is purely local to whoever calls it, so this
--- can't be driven by our own PrimaryLightsActivated/etc flags (those only
--- exist on the driver's client). Instead every client independently checks
--- each nearby configured vehicle's actual extra state - which IS synced by
--- the game. This thread just decides whether the effect should be running
--- at all for a vehicle (any of extras 1-9 on); the actual flash timing per
--- light is handled every frame inside CreateEnvironmentLight itself, based
--- on each light's own `Extras` list (see config.lua).
-
 local vehicleConfigByHash = {}
 for model, cfg in pairs(Config.Vehicles) do
     vehicleConfigByHash[GetHashKey(model)] = cfg
@@ -91,16 +77,12 @@ Citizen.CreateThread(function()
     while true do
         Citizen.Wait(300)
 
-        -- Stop lights on vehicles that no longer qualify (extras off, or
-        -- vehicle gone).
         for vehicle in pairs(ActiveEnvironmentLights) do
             if not IsShowingEmergencyLights(vehicle) then
                 StopEnvironmentLight(vehicle)
             end
         end
 
-        -- Start lights on any configured, streamed-in vehicle that now
-        -- qualifies and isn't already running.
         for _, vehicle in ipairs(GetGamePool('CVehicle')) do
             if not ActiveEnvironmentLights[vehicle] then
                 local cfg = vehicleConfigByHash[GetEntityModel(vehicle)]
@@ -219,24 +201,41 @@ Citizen.CreateThread(function()
                     end
                     Draw("LOCK", 0, 0, 0, 255, 0.870 + panelOffsetX, 0.86 + panelOffsetY, 0.25, 0.25, 1, true, 0)
 
-                    -- PRIMARY SIREN
+                    -- SIREN TONES (4 independent tones - see ActiveSirenTone)
                     _DrawRect(0.742 + panelOffsetX, 0.93 + panelOffsetY, 0.028, 0.045, 0, 0, 0, 225, 0)
                     Draw("--", 255, 255, 255, 255, 0.7423 + panelOffsetX, 0.93 + panelOffsetY, 0.25, 0.25, 1, true, 0)
-                    Draw("PRIM", 0, 0, 0, 255, 0.7423 + panelOffsetX, 0.91 + panelOffsetY, 0.25, 0.25, 1, true, 0)
-                    if PrimarySirenActivated then
+                    Draw("SRN1", 0, 0, 0, 255, 0.7423 + panelOffsetX, 0.91 + panelOffsetY, 0.25, 0.25, 1, true, 0)
+                    if ActiveSirenTone == 1 then
                         _DrawRect(0.7421 + panelOffsetX, 0.921 + panelOffsetY, 0.026, 0.02, 199, 152, 0, 225, 0)
                     else
                         _DrawRect(0.7421 + panelOffsetX, 0.921 + panelOffsetY, 0.026, 0.02, 186, 186, 186, 225, 0)
                     end
 
-                    -- SECONDARY SIREN
                     _DrawRect(0.774 + panelOffsetX, 0.93 + panelOffsetY, 0.028, 0.045, 0, 0, 0, 225, 0)
                     Draw("--", 255, 255, 255, 255, 0.774 + panelOffsetX, 0.93 + panelOffsetY, 0.25, 0.25, 1, true, 0)
-                    Draw("SEC", 0, 0, 0, 255, 0.774 + panelOffsetX, 0.91 + panelOffsetY, 0.25, 0.25, 1, true, 0)
-                    if SecondarySirenActivated then
+                    Draw("SRN2", 0, 0, 0, 255, 0.774 + panelOffsetX, 0.91 + panelOffsetY, 0.25, 0.25, 1, true, 0)
+                    if ActiveSirenTone == 2 then
                         _DrawRect(0.774 + panelOffsetX, 0.921 + panelOffsetY, 0.026, 0.02, 199, 152, 0, 225, 0)
                     else
                         _DrawRect(0.774 + panelOffsetX, 0.921 + panelOffsetY, 0.026, 0.02, 186, 186, 186, 225, 0)
+                    end
+
+                    _DrawRect(0.806 + panelOffsetX, 0.93 + panelOffsetY, 0.028, 0.045, 0, 0, 0, 225, 0)
+                    Draw("--", 255, 255, 255, 255, 0.806 + panelOffsetX, 0.93 + panelOffsetY, 0.25, 0.25, 1, true, 0)
+                    Draw("SRN3", 0, 0, 0, 255, 0.806 + panelOffsetX, 0.91 + panelOffsetY, 0.25, 0.25, 1, true, 0)
+                    if ActiveSirenTone == 3 then
+                        _DrawRect(0.806 + panelOffsetX, 0.921 + panelOffsetY, 0.026, 0.02, 199, 152, 0, 225, 0)
+                    else
+                        _DrawRect(0.806 + panelOffsetX, 0.921 + panelOffsetY, 0.026, 0.02, 186, 186, 186, 225, 0)
+                    end
+
+                    _DrawRect(0.838 + panelOffsetX, 0.93 + panelOffsetY, 0.028, 0.045, 0, 0, 0, 225, 0)
+                    Draw("--", 255, 255, 255, 255, 0.838 + panelOffsetX, 0.93 + panelOffsetY, 0.25, 0.25, 1, true, 0)
+                    Draw("SRN4", 0, 0, 0, 255, 0.838 + panelOffsetX, 0.91 + panelOffsetY, 0.25, 0.25, 1, true, 0)
+                    if ActiveSirenTone == 4 then
+                        _DrawRect(0.838 + panelOffsetX, 0.921 + panelOffsetY, 0.026, 0.02, 199, 152, 0, 225, 0)
+                    else
+                        _DrawRect(0.838 + panelOffsetX, 0.921 + panelOffsetY, 0.026, 0.02, 186, 186, 186, 225, 0)
                     end
                 end
             end

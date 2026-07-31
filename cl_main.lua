@@ -13,23 +13,18 @@ RegisterCommand('AG-ALS-FiveM-Primary', function()
 
 	if PrimaryLightsActivated then
 		PrimaryLightsActivated = false
+		Entity(vehicle).state:set('elsPrimary', nil, true)
 		DisableActiveExtras(vehicle)
 
-		if PrimarySirenActivated then
-			TriggerServerEvent('ALS:StopPrimarySirenServer', GetVehicleNetId(vehicle))
-			PrimarySirenActivated = false
-		end
-		if SecondarySirenActivated then
-			TriggerServerEvent('ALS:StopSecondarySirenServer', GetVehicleNetId(vehicle))
-			SecondarySirenActivated = false
+		if ActiveSirenTone then
+			ClearVehicleSirenState(vehicle)
+			ActiveSirenTone = nil
 		end
 	else
 		for model, vehicleConfig in pairs(Config.Vehicles) do
 			if GetEntityModel(vehicle) == GetHashKey(model) then
 				PrimaryLightsActivated = true
-				Citizen.CreateThread(function()
-					EnablePrimaryStage(vehicle, vehicleConfig)
-				end)
+				Entity(vehicle).state:set('elsPrimary', { patternId = vehicleConfig.Pattern }, true)
 				break
 			end
 		end
@@ -43,14 +38,13 @@ RegisterCommand('AG-ALS-FiveM-Secondary', function()
 
 	if SecondaryLightsActivated then
 		SecondaryLightsActivated = false
+		Entity(vehicle).state:set('elsSecondary', nil, true)
 		DisableActiveExtras(vehicle)
 	else
 		for model, vehicleConfig in pairs(Config.Vehicles) do
 			if GetEntityModel(vehicle) == GetHashKey(model) then
 				SecondaryLightsActivated = true
-				Citizen.CreateThread(function()
-					EnableSecondaryStage(vehicle, vehicleConfig)
-				end)
+				Entity(vehicle).state:set('elsSecondary', { patternId = vehicleConfig.Pattern }, true)
 				break
 			end
 		end
@@ -64,73 +58,38 @@ RegisterCommand('AG-ALS-FiveM-Warning', function()
 
 	if WarningLightsActivated then
 		WarningLightsActivated = false
+		Entity(vehicle).state:set('elsWarning', nil, true)
 		DisableActiveExtras(vehicle)
 	else
 		for model, vehicleConfig in pairs(Config.Vehicles) do
 			if GetEntityModel(vehicle) == GetHashKey(model) then
 				WarningLightsActivated = true
-				Citizen.CreateThread(function()
-					EnableWarningStage(vehicle, vehicleConfig)
-				end)
+				Entity(vehicle).state:set('elsWarning', { patternId = vehicleConfig.Pattern }, true)
 				break
 			end
 		end
 	end
 end)
 
-RegisterCommand('AG-ALS-FiveM-PrimarySiren', function()
+local function toggleSirenTone(tone)
 	local ped = PlayerPedId()
 	local vehicle = GetVehiclePedIsUsing(ped)
-	if ALSLocked or SecondarySirenActivated or not PrimaryLightsActivated then return end
+	if ALSLocked or (not Config.SirenAlwaysAllowed and not PrimaryLightsActivated) then return end
 
-	if PrimarySirenActivated then
-		TriggerServerEvent('ALS:StopPrimarySirenServer', GetVehicleNetId(vehicle))
-		PrimarySirenActivated = false
+	if ActiveSirenTone == tone then
+		ClearVehicleSirenState(vehicle)
+		ActiveSirenTone = nil
 	else
-		TriggerServerEvent('ALS:PlayPrimarySirenServer', GetVehicleNetId(vehicle))
-		PrimarySirenActivated = true
+		SetVehicleSirenState(vehicle, tone)
+		ActiveSirenTone = tone
 	end
-end)
+end
 
-RegisterCommand('AG-ALS-FiveM-SecondarySiren', function()
-	local ped = PlayerPedId()
-	local vehicle = GetVehiclePedIsUsing(ped)
-	if ALSLocked or PrimarySirenActivated or not PrimaryLightsActivated then return end
-
-	if SecondarySirenActivated then
-		TriggerServerEvent('ALS:StopSecondarySirenServer', GetVehicleNetId(vehicle))
-		SecondarySirenActivated = false
-	else
-		TriggerServerEvent('ALS:PlaySecondarySirenServer', GetVehicleNetId(vehicle))
-		SecondarySirenActivated = true
-	end
-end)
+RegisterCommand('AG-ALS-FiveM-Siren1', function() toggleSirenTone(1) end)
+RegisterCommand('AG-ALS-FiveM-Siren2', function() toggleSirenTone(2) end)
+RegisterCommand('AG-ALS-FiveM-Siren3', function() toggleSirenTone(3) end)
+RegisterCommand('AG-ALS-FiveM-Siren4', function() toggleSirenTone(4) end)
 
 RegisterCommand('ALSPanel', function()
 	ModuleOpen = not ModuleOpen
-end)
-
------ HOLD-TO-CHANGE SIREN TONE (matches vanilla GTA horn-hold behaviour) -----
-Citizen.CreateThread(function()
-    local toneHeld = false
-
-    while true do
-        Citizen.Wait(0)
-        local sirenType = PrimarySirenActivated and 'Primary' or (SecondarySirenActivated and 'Secondary' or nil)
-
-        if sirenType then
-            -- Suppress the actual horn sound while a siren is active, same
-            -- as vanilla does, so holding the key doesn't also honk.
-            DisableControlAction(0, Config.SirenToneControl, true)
-
-            local held = IsControlPressed(0, Config.SirenToneControl)
-            if held ~= toneHeld then
-                toneHeld = held
-                local vehicle = GetVehiclePedIsUsing(PlayerPedId())
-                TriggerServerEvent('ALS:SetSirenToneServer', GetVehicleNetId(vehicle), sirenType, held)
-            end
-        elseif toneHeld then
-            toneHeld = false
-        end
-    end
 end)

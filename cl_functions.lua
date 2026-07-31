@@ -62,9 +62,6 @@ ActiveEnvironmentLights = {}
 
 ALL_LIGHT_EXTRA_IDS = {1, 2, 3, 4, 5, 6, 7, 8, 9}
 
--- Returns true if any of the given extra ids (default: all light extras,
--- 1-9) are currently ON for this vehicle. Extra state is synced by the
--- game, so this gives the same answer on every client.
 function IsShowingEmergencyLights(vehicle, extraIds)
     if not DoesEntityExist(vehicle) then return false end
     for _, extraId in ipairs(extraIds or ALL_LIGHT_EXTRA_IDS) do
@@ -75,17 +72,6 @@ function IsShowingEmergencyLights(vehicle, extraIds)
     return false
 end
 
--- DrawLightWithRangeAndShadow only persists for a single frame, so it has
--- to be re-issued every tick for as long as the light should stay visible.
--- To actually flash in sync with the real lights (rather than just staying
--- on for the whole time any pattern is active), we check the relevant
--- extras' real on/off state every single frame and only draw when they're
--- on - this mirrors the exact timing of the actual flash pattern.
---
--- extraIds (optional): which extras this specific light should track, e.g.
--- {2,4,5} to flash together with that stage. Defaults to "any of 1-9" if
--- omitted, which just tracks whether lights are on at all, without
--- flashing in a specific rhythm.
 function CreateEnvironmentLight(vehicle, light, offset, color, extraIds)
     local boneIndex = GetEntityBoneIndexByName(vehicle, light)
     if boneIndex == -1 then
@@ -94,12 +80,8 @@ function CreateEnvironmentLight(vehicle, light, offset, color, extraIds)
     end
 
     local rgb = { 255, 255, 255 } -- Default color: white
-    local range = 10.0
-    local intensity = 5.0
-    -- Shadow casting (non-zero) is what produces a visible halo/ring
-    -- around the light at close range - it's a known artifact of this
-    -- native's soft-shadow falloff, not something fixable via position
-    -- math. A small accent glow doesn't need real shadows anyway.
+    local range = Config.ELSRange or 50.0
+    local intensity = Config.ELSIntensity or 1.0
     local shadow = 0
     local warnedBadPosition = false
 
@@ -119,22 +101,10 @@ function CreateEnvironmentLight(vehicle, light, offset, color, extraIds)
     Citizen.CreateThread(function()
         while ActiveEnvironmentLights[vehicle] and DoesEntityExist(vehicle) do
             if IsShowingEmergencyLights(vehicle, extraIds) then
-                -- GetWorldPositionOfEntityBone gives us the bone's real
-                -- world position. `offset` is meant to be a small
-                -- vehicle-relative nudge from that bone, so we rotate just
-                -- the offset by the vehicle's current heading (via its
-                -- matrix) and add it on.
                 local boneWorldPos = GetWorldPositionOfEntityBone(vehicle, boneIndex)
                 local right, forward, up, _ = GetEntityMatrix(vehicle)
                 local worldOffset = (right * offset.x) + (forward * offset.y) + (up * offset.z)
                 local position = boneWorldPos + worldOffset
-
-                -- Sanity guard: if the bone/matrix math ever produces a
-                -- position far from the vehicle (bad bone name resolving
-                -- to something unexpected, NaN, etc), don't draw it - a
-                -- misplaced DrawLightWithRangeAndShadow call is what
-                -- causes a large blown-out glow/corona somewhere on the
-                -- map instead of on your vehicle.
                 local vehiclePos = GetEntityCoords(vehicle)
                 if #(position - vehiclePos) <= 10.0 then
                     DrawLightWithRangeAndShadow(
@@ -157,11 +127,6 @@ function StopEnvironmentLight(vehicle)
     ActiveEnvironmentLights[vehicle] = nil
 end
 
--- Starts every environment light configured for this vehicle (its own
--- EnvironmentLights list, or Config.DefaultEnvironmentLights if it doesn't
--- have one). Safe to call repeatedly; callers should check
--- ActiveEnvironmentLights[vehicle] first to avoid stacking duplicate
--- draw threads.
 function StartEnvironmentLights(vehicle, vehicleConfig)
     local lights = (vehicleConfig and vehicleConfig.EnvironmentLights) or Config.DefaultEnvironmentLights
     for _, def in ipairs(lights) do
@@ -169,35 +134,17 @@ function StartEnvironmentLights(vehicle, vehicleConfig)
     end
 end
 
------ NETWORK ID HELPERS -----
--- Entity handles are LOCAL to each client's game instance - they are not
--- safe to send over the network, because the same number can point to a
--- different entity (or nothing at all) on another player's machine. Any
--- vehicle reference that needs to travel client -> server -> client (e.g.
--- for siren audio) must be converted to/from a network id instead.
-function GetVehicleNetId(vehicle)
-    if not vehicle or vehicle == 0 or not DoesEntityExist(vehicle) then
-        return nil
-    end
-    return NetworkGetNetworkIdFromEntity(vehicle)
+----- SIREN STATE (entity state bags) -----
+function SetVehicleSirenState(vehicle, tone)
+    if not vehicle or vehicle == 0 or not DoesEntityExist(vehicle) then return end
+    Entity(vehicle).state:set('elsSiren', { active = true, tone = tone }, true)
 end
 
-function GetVehicleFromNetId(netId, timeoutMs)
-    if not netId then return nil end
-    timeoutMs = timeoutMs or 2000
-    local start = GetGameTimer()
-    while not NetworkDoesNetworkIdExist(netId) and (GetGameTimer() - start) < timeoutMs do
-        Citizen.Wait(0)
-    end
-    if not NetworkDoesNetworkIdExist(netId) then return nil end
-    return NetworkGetEntityFromNetworkId(netId)
+function ClearVehicleSirenState(vehicle)
+    if not vehicle or vehicle == 0 or not DoesEntityExist(vehicle) then return end
+    Entity(vehicle).state:set('elsSiren', nil, true)
 end
 
------ EXTRAS -----
--- state = true  -> extra ON  (native value 0)
--- state = false -> extra OFF (native value 1)
--- (Previously this relied on the fact that 0 is "truthy" in Lua, which
--- happened to work but was extremely easy to misuse - made explicit here.)
 function ToggleExtra(vehicle, extra, state)
     if not DoesExtraExist(vehicle, extra) then return end
     SetVehicleAutoRepairDisabled(vehicle, true)
@@ -210,9 +157,6 @@ function ToggleMisc(vehicle, misc, toggle)
 end
 
 function DisableActiveExtras(vehicle)
-    -- Guarded against nil/0/invalid entities - previously this was called
-    -- with no argument at all on resource start and would try to iterate
-    -- extras on a nil vehicle.
     if not vehicle or vehicle == 0 or not DoesEntityExist(vehicle) then return end
     SetVehicleSiren(vehicle, false)
     for extraId = 0, 20 do
@@ -220,74 +164,48 @@ function DisableActiveExtras(vehicle)
             SetVehicleExtra(vehicle, extraId, 1)
         end
     end
-    BroadcastExtras(vehicle, ALL_LIGHT_EXTRA_IDS, false)
 end
 
--- Pushes an extra on/off change to every client immediately, via net id
--- (safe across clients - see the net-id note above). Core vehicle network
--- sync WOULD eventually carry this too, but it's throttled/deprioritized
--- for lower-importance fields like extras, especially at distance - fine
--- for occasional changes, but visibly laggy/choppy for a strobe pattern
--- flipping several times a second. This is the fast, explicit path other
--- clients actually flash in time from.
-function BroadcastExtras(vehicle, extraIds, state)
-    local netId = GetVehicleNetId(vehicle)
-    if not netId then return end
-    TriggerServerEvent('ALS:SetExtrasServer', netId, extraIds, state)
+local ActivePatternRunners = {}
+
+local function stageKey(vehicle, stageName)
+    return vehicle .. ':' .. stageName
 end
 
------ LIGHT PATTERNS -----
--- These only ever run on the client currently driving the vehicle.
--- Extra states DO sync automatically via the game's normal vehicle network
--- sync, but that channel is throttled/deprioritized for fields like extras
--- (especially at distance), which makes a fast strobe pattern look laggy
--- and choppy to everyone but the driver. So on top of setting them
--- locally, each stage transition is also explicitly pushed to every
--- client via BroadcastExtras (safe net-id based push, not the old raw
--- entity handle broadcast).
-local function runStagePattern(vehicle, pattern, stages, isStillActiveFn)
-    while isStillActiveFn() do
-        if not DoesEntityExist(vehicle) then return end
-        SetVehicleEngineOn(vehicle, true, true, false)
+function RunPatternStage(vehicle, stageName, patternId)
+    local key = stageKey(vehicle, stageName)
+    if ActivePatternRunners[key] then return end -- already running for this vehicle/stage
 
-        for _, stage in ipairs(stages) do
-            if not isStillActiveFn() or not DoesEntityExist(vehicle) then return end
+    local pattern = Config.Patterns[patternId]
+    local stages = pattern and pattern[stageName]
+    if not pattern or not stages then return end
 
-            for _, extraIndex in ipairs(stage.Extras) do
-                ToggleExtra(vehicle, extraIndex, true)
-            end
-            if #stage.Extras > 0 then
-                BroadcastExtras(vehicle, stage.Extras, true)
-            end
+    ActivePatternRunners[key] = true
 
-            Citizen.Wait(pattern.FlashDelay)
+    Citizen.CreateThread(function()
+        while ActivePatternRunners[key] and DoesEntityExist(vehicle) do
+            SetVehicleEngineOn(vehicle, true, true, false)
 
-            for _, extraIndex in ipairs(stage.Extras) do
-                ToggleExtra(vehicle, extraIndex, false)
-            end
-            if #stage.Extras > 0 then
-                BroadcastExtras(vehicle, stage.Extras, false)
+            for _, stage in ipairs(stages) do
+                if not ActivePatternRunners[key] or not DoesEntityExist(vehicle) then break end
+
+                for _, extraIndex in ipairs(stage.Extras) do
+                    ToggleExtra(vehicle, extraIndex, true)
+                end
+
+                Citizen.Wait(pattern.FlashDelay)
+
+                for _, extraIndex in ipairs(stage.Extras) do
+                    ToggleExtra(vehicle, extraIndex, false)
+                end
             end
         end
-    end
+        ActivePatternRunners[key] = nil
+    end)
 end
 
-function EnablePrimaryStage(vehicle, vehicleConfig)
-    local pattern = Config.Patterns[vehicleConfig.Pattern]
-    if not pattern then return end
-    runStagePattern(vehicle, pattern, pattern.Primary, function() return PrimaryLightsActivated end)
-end
-
-function EnableSecondaryStage(vehicle, vehicleConfig)
-    local pattern = Config.Patterns[vehicleConfig.Pattern]
-    if not pattern then return end
-    runStagePattern(vehicle, pattern, pattern.Secondary, function() return SecondaryLightsActivated end)
-end
-
-function EnableWarningStage(vehicle, vehicleConfig)
-    local pattern = Config.Patterns[vehicleConfig.Pattern]
-    if not pattern then return end
-    runStagePattern(vehicle, pattern, pattern.Warning, function() return WarningLightsActivated end)
+function StopPatternStage(vehicle, stageName)
+    ActivePatternRunners[stageKey(vehicle, stageName)] = nil
 end
 
 ----- UI DRAWING (unchanged, not buggy) -----
@@ -326,8 +244,8 @@ function IsControlModuleOpen()
 	return ModuleOpen
 end
 
-function IsPrimarySirenActive()
-	return PrimarySirenActivated
+function IsSirenActive()
+	return ActiveSirenTone ~= nil
 end
 
 function UpdateVehicles()

@@ -6,23 +6,22 @@ Config.UseWMServerSirens = false -- https://github.com/Walsheyy/WMServerSirens
 
 ---------- ELS General Settings ----------
 
-Config.ELSRange = 50.0
-Config.ELSIntensity = 5.0
+Config.ELSRange = 150.0
+Config.ELSIntensity = 0.5
+Config.AutoOff = false -- Automatically turn off lights when exiting the vehicle
+Config.SirenAlwaysAllowed = false -- If true, sirens can be toggled even with no light stage active (matches Miss-ELS's Config.SirenAlwaysAllowed)
 
 ---------- ELS Siren Settings ----------
-Config.SirenToneControl = 86
+
 Config.SirenTones = {
-    Primary = {
-        Normal = Config.UseWMServerSirens and 'SIREN_ALPHA' or 'VEHICLES_HORNS_SIREN_1',
-        Alt = Config.UseWMServerSirens and 'SIREN_DELTA' or 'VEHICLES_HORNS_SIREN_2',
-    },
-    Secondary = {
-        Normal = Config.UseWMServerSirens and 'SIREN_DELTA' or 'VEHICLES_HORNS_SIREN_3',
-        Alt = Config.UseWMServerSirens and 'SIREN_ALPHA' or 'VEHICLES_HORNS_SIREN_4',
-    },
+    [1] = Config.UseWMServerSirens and 'SIREN_ALPHA' or 'VEHICLES_HORNS_SIREN_1',            -- wail
+    [2] = Config.UseWMServerSirens and 'SIREN_DELTA' or 'VEHICLES_HORNS_SIREN_2',             -- yelp
+    [3] = Config.UseWMServerSirens and 'SIREN_BRAVO' or 'VEHICLES_HORNS_AMBULANCE_WARNING',   -- priority/hi-lo
+    [4] = Config.UseWMServerSirens and 'SIREN_ECHO' or 'VEHICLES_HORNS_POLICE_WARNING',       -- priority/hi-lo
 }
 
 ---------- ELS Vehicle Settings ----------
+---------- LIGHTS: RED, BLUE, GREEN, AMBER, WHITE ----------
 
 Config.Vehicles = {
     ["LCEMS"] = {
@@ -37,7 +36,7 @@ Config.Vehicles = {
         EnvironmentLights = {
             { Bone = "extra_1", Offset = vector3(0.0, 0.0, 0.0), Color = "red", Extras = {1,2} }, -- You can use OpenIV to get bone ID's for where the lights generate from
             { Bone = "extra_3", Offset = vector3(0.0, 0.0, 0.0), Color = "blue", Extras = {3,4} },
-            { Bone = "extra_7", Offset = vector3(0.0, 0.0, 0.0), Color = "amber", Extras = {7,9} },
+            { Bone = "extra_7", Offset = vector3(0.0, 0.0, 0.0), Color = "amberq", Extras = {7,9} },
         }
     },
 }
