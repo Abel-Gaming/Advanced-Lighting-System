@@ -1,285 +1,80 @@
 Config = {}
-Config.EnableDebugging = false -- Useful for editing the script
-Config.DisableGameControls = true -- This will disable the default game controls (Q - Radio Wheel) [NOT USED CURRENTLY]
+Config.EnableDebugging = true -- Useful for editing the script
+Config.DisableGameControls = false -- This will disable the default game controls (Q - Radio Wheel) [NOT USED CURRENTLY]
 Config.VehicleUpdateTime = 60 -- How often the script will check for players vehicles (In Seconds)
 Config.UseWMServerSirens = false -- https://github.com/Walsheyy/WMServerSirens
 
+---------- In-Game Editor (/alseditor or F7) ----------
+Config.EditorRequireAce = true -- true = only allowed players can open/use the editor. false = anyone can (not recommended)
+Config.EditorAce = 'als.editor' -- Ace permission that unlocks the editor. Grant it in server.cfg, e.g.: add_ace group.admin als.editor allow
+-- Players listed here can also use the editor, no server.cfg change needed.
+-- Any identifier works: 'fivem:123456', 'license:abc...', 'discord:123...', 'steam:110000...'
+-- (Shown in the server console when a player joins. Note: this file is also sent to players' games.)
+Config.EditorAllowedPlayers = {
+    -- 'fivem:000000',
+}
+Config.EditorDataFile = 'data/als_data.json' -- Saved edits; these override the Vehicles/Patterns below. Delete it to go back to this file
+
+
+---------- ELS General Settings ----------
+
+Config.ELSRange = 100.0
+Config.ELSIntensity = 0.5
+Config.PatternDistance = 250.0 -- Flash patterns only run on vehicles within this distance of your camera (performance)
+Config.EnvLightDrawDistance = 120.0 -- Environment light glow only drawn within this distance of your camera (performance)
+Config.AutoOff = false -- Automatically turn off lights when exiting the vehicle
+Config.SirenAlwaysAllowed = false -- If true, sirens can be toggled even with no light stage active (matches Miss-ELS's Config.SirenAlwaysAllowed)
+
+---------- ELS Siren Settings (WM Sirens: https://github.com/fk-1997/Server-Sided-Sounds-and-Sirens/blob/main/IDTABLE.md#table-with-soundbank-soundset-and-audiostring) ----------
+
+Config.WMServerSirensAudioBank = 'dlc_serversideaudio/oiss_ssa_vehaud_lspd_new'
+Config.WMServerSirensSoundSet = 'oiss_ssa_vehaud_lspd_new_soundset'
+
+Config.SirenTones = {
+    [1] = Config.UseWMServerSirens and 'oiss_ssa_vehaud_noose_old_siren_adam' or 'VEHICLES_HORNS_SIREN_1',            -- wail
+    [2] = Config.UseWMServerSirens and 'oiss_ssa_vehaud_noose_old_siren_boy' or 'VEHICLES_HORNS_SIREN_2',             -- yelp
+    [3] = Config.UseWMServerSirens and 'oiss_ssa_vehaud_noose_old_siren_charles' or 'VEHICLES_HORNS_AMBULANCE_WARNING',   -- priority/hi-lo
+    [4] = Config.UseWMServerSirens and 'oiss_ssa_vehaud_noose_old_siren_david' or 'VEHICLES_HORNS_POLICE_WARNING',       -- priority/hi-lo
+}
+
+---------- ELS Vehicle Settings ----------
+---------- LIGHTS: RED, BLUE, GREEN, AMBER, WHITE ----------
+
 Config.Vehicles = {
-    ["FBI"] = {
-        Pattern = 9
+    ["lspd1"] = {
+        Pattern = 1,
+        EnvironmentLights = {
+            { Bone = "extra_1", Offset = vector3(0.0, 0.0, 0.0), Color = "red", Extras = {1,3} },
+            { Bone = "extra_1", Offset = vector3(0.0, 0.0, 0.0), Color = "blue", Extras = {2,4} },
+            { Bone = "extra_1", Offset = vector3(0.0, 0.0, 0.0), Color = "white", Extras = {3,4} },
+        }
     },
     ["FBI2"] = {
-        Pattern = 2
-    },
-    ["POLICE"] = {
-        Pattern = 3
-    },
-    ["POLICE2"] = {
-        Pattern = 4
-    },
-    ["POLICE3"] = {
-        Pattern = 4
-    },
-    ["SHERIFF2"] = {
-        Pattern = 4
-    },
-    ["RAMP"] = {
-        Pattern = 5
-    },
-    ["SCSO1"] = {
-        Pattern = 5
-    },
-    ["SCSO2"] = {
-        Pattern = 5
-    },
-    ["SCSO3"] = {
-        Pattern = 5
-    },
-    ["SCSO4"] = {
-        Pattern = 5
-    },
-    ["SCSO5"] = {
-        Pattern = 5
-    },
-    ["SCSO6"] = {
-        Pattern = 5
-    },
-    ["SCSO7"] = {
-        Pattern = 6
-    },
-    ["SCSO8"] = {
-        Pattern = 5
-    },
-    ["SCSO9"] = {
-        Pattern = 6
-    },
-    ["21F150K9"] = {
-        Pattern = 7
-    },
-    ["SAHP1"] = {
-        Pattern = 7
-    },
-    ["SAHP2"] = {
-        Pattern = 7
-    },
-    ["SAHP3"] = {
-        Pattern = 7
-    },
-    ["SAHP4"] = {
-        Pattern = 8
-    },
-    ["SAHP5"] = {
-        Pattern = 7
-    },
-    ["SAHP6"] = {
-        Pattern = 7
-    },
-    ["SAHP7"] = {
-        Pattern = 8
-    },
-    ["SAHP8"] = {
-        Pattern = 7
+        Pattern = 1,
+        EnvironmentLights = {
+            { Bone = "extra_1", Offset = vector3(0.0, 0.0, 0.0), Color = "red", Extras = {1,2} }, -- You can use OpenIV to get bone ID's for where the lights generate from
+            { Bone = "extra_3", Offset = vector3(0.0, 0.0, 0.0), Color = "blue", Extras = {3,4} },
+            { Bone = "extra_7", Offset = vector3(0.0, 0.0, 0.0), Color = "amber", Extras = {7,9} },
+        }
     },
 }
+
+---------- ELS Pattern Settings ----------
 
 Config.Patterns = {
     [1] = {
         Primary = {
-            {Extras = {1,4}}, -- First Flash
-            {Extras = {2,7}},  -- Second Flash
-            {Extras = {3,9}},  -- Third Flash
-            {Extras = {2,7}},  -- Fourth Flash
-            {Extras = {3,9}},  -- Fifth Flash
+            {Extras = {1,2}}, -- First Flash
+            {Extras = {3,4}}, -- Second Flash
         },
         Secondary = {
-            {Extras = {4}}, -- First Flash
-            {Extras = {3}}, -- Second Flash
-            {Extras = {2}}, -- Third Flash
-            {Extras = {1}}, -- Fourth Flash
+            {Extras = {1}}, -- First Flash
+            {Extras = {4}}, -- Second Flash
         },
         Warning = {
-            {Extras = {}}
-        },
-        FlashDelay = 250
-    },
-
-    [2] = {
-        Primary = {
-            {Extras = {1,3,5,7}},
-            {Extras = {2,4,6,8}}
-        },
-        Secondary = {
-            {Extras = {3,5}},
-            {Extras = {4,6}},
-        },
-        Warning = {
-            {Extras = {7}},
+            {Extras = {7,9}},
             {Extras = {8}}
         },
         FlashDelay = 250
     },
-
-    [3] = {
-        Primary = {
-            {Extras = {1,2,9}},
-            {Extras = {3,4,7}}
-        },
-        Secondary = {
-            {Extras = {9}},
-            {Extras = {8}},
-            {Extras = {7}},
-        },
-        Warning = {
-            {Extras = {1}},
-            {Extras = {4}}
-        },
-        FlashDelay = 250
-    },
-
-    [4] = {
-        Primary = {
-            {Extras = {1,3,7}},
-            {Extras = {2,4,9}}
-        },
-        Secondary = {
-            {Extras = {9}},
-            {Extras = {8}},
-            {Extras = {7}}
-        },
-        Warning = {
-            {Extras = {1}},
-            {Extras = {4}}
-        },
-        FlashDelay = 250
-    },
-    
-    [5] = {
-        Primary = {
-            {Extras = {1,4,5}},
-            {Extras = {2,3,6}},
-            {Extras = {1,4,5}},
-            {Extras = {2,3,6}},
-            {Extras = {1,2,5}},
-            {Extras = {3,4,6}},
-            {Extras = {1,2,5}},
-            {Extras = {3,4,6}},
-        },
-        Secondary = {
-            {Extras = {1}},
-            {Extras = {2}},
-            {Extras = {3}},
-            {Extras = {4}}
-        },
-        Warning = {
-            {Extras = {1}},
-            {Extras = {4}}
-        },
-        FlashDelay = 250
-    },
-
-    [6] = {
-        Primary = {
-            {Extras = {1,4}},
-            {Extras = {2,3,5,6,7}},
-            {Extras = {1,4}},
-            {Extras = {2,3,5,6,7}},
-            {Extras = {}},
-            {Extras = {1,2}},
-            {Extras = {3,4}},
-        },
-        Secondary = {
-            {Extras = {9}},
-            {Extras = {8}},
-            {Extras = {7}}
-        },
-        Warning = {
-            {Extras = {1}},
-            {Extras = {4}}
-        },
-        FlashDelay = 250
-    },
-
-    [7] = {
-        Primary = {
-            {Extras = {2,4,5}},
-            {Extras = {1,3,6}},
-            {Extras = {2,4,5}},
-            {Extras = {1,3,6}},
-            {Extras = {2,4,5}},
-            {Extras = {1,3,6}},
-            {Extras = {2,4,5}},
-            {Extras = {1,3,6}},
-            {Extras = {}},
-            {Extras = {2,3,6}},
-            {Extras = {1,4,5}},
-            {Extras = {2,3,6}},
-            {Extras = {1,4,5}},
-            {Extras = {2,3,6}},
-            {Extras = {1,4,5}},
-            {Extras = {2,3,6}},
-            {Extras = {1,4,5}},
-            {Extras = {}},
-        },
-        Secondary = {
-            {Extras = {7}},
-            {Extras = {8}},
-            {Extras = {9}}
-        },
-        Warning = {
-            {Extras = {1}},
-            {Extras = {4}}
-        },
-        FlashDelay = 250
-    },
-
-    [8] = {
-        Primary = {
-            {Extras = {2,4,5}},
-            {Extras = {1,3,6}},
-            {Extras = {2,4,5}},
-            {Extras = {1,3,6}},
-            {Extras = {2,4,5}},
-            {Extras = {1,3,6}},
-            {Extras = {2,4,5}},
-            {Extras = {1,3,6}},
-            {Extras = {}},
-            {Extras = {2,3,6}},
-            {Extras = {1,4,5}},
-            {Extras = {2,3,6}},
-            {Extras = {1,4,5}},
-            {Extras = {2,3,6}},
-            {Extras = {1,4,5}},
-            {Extras = {2,3,6}},
-            {Extras = {1,4,5}},
-            {Extras = {}},
-        },
-        Secondary = {
-            {Extras = {9}},
-            {Extras = {8}},
-            {Extras = {7}}
-        },
-        Warning = {
-            {Extras = {1}},
-            {Extras = {4}}
-        },
-        FlashDelay = 250
-    },
-
-    [9] = {
-        Primary = {
-            {Extras = {1,2,7}},
-            {Extras = {3,4,9}},
-        },
-        Secondary = {
-            {Extras = {4}}, -- First Flash
-            {Extras = {3}}, -- Second Flash
-            {Extras = {2}}, -- Third Flash
-            {Extras = {1}}, -- Fourth Flash
-        },
-        Warning = {
-            {Extras = {1}},
-            {Extras = {4}}
-        },
-        FlashDelay = 250
-    }
 }

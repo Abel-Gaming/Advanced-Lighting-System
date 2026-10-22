@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>ALS Vehicle Editor</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app" class="hidden">
+  <header>
+    <div class="brand">
+      <span class="badge">ALS</span>
+      <div>
+        <div class="title">Vehicle Editor</div>
+        <div id="carInfo" class="sub">Not in a vehicle</div>
+      </div>
+    </div>
+    <div class="head-actions">
+      <button id="releaseBtn" class="ghost" title="Release the mouse so you can look around. Press F7 to come back.">Look around</button>
+      <button id="closeBtn" class="ghost icon" title="Close (Esc)">&#x2715;</button>
+    </div>
+  </header>
+
+  <nav class="tabs">
+    <button data-tab="vehicles" class="active">Vehicles</button>
+    <button data-tab="patterns">Patterns</button>
+  </nav>
+
+  <main>
+    <section id="tab-vehicles" class="tab">
+      <div class="toolbar">
+        <select id="vehSelect"></select>
+        <button id="addCurrentVeh" title="Add the car you're sitting in">+ This car</button>
+        <button id="addVeh" class="ghost" title="Add a vehicle by model name">+ New</button>
+      </div>
+      <div id="vehEditor"></div>
+    </section>
+
+    <section id="tab-patterns" class="tab hidden">
+      <div class="toolbar">
+        <select id="patSelect"></select>
+        <button id="addPat">+ New</button>
+        <button id="dupPat" class="ghost">Duplicate</button>
+      </div>
+      <div id="patEditor"></div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="test">
+      <span class="label">Test on this car</span>
+      <div class="stages">
+        <button data-stage="Warning">S-1 WRN</button>
+        <button data-stage="Secondary">S-2 SEC</button>
+        <button data-stage="Primary">S-3 PRIM</button>
+      </div>
+    </div>
+    <div class="actions">
+      <span id="dirty" class="dirty hidden">Unsaved changes</span>
+      <button id="revertBtn" class="ghost">Revert</button>
+      <button id="exportBtn" class="ghost">Copy as Lua</button>
+      <button id="saveBtn" class="primary">Save</button>
+    </div>
+  </footer>
+
+  <div id="toast" class="toast"></div>
+
+  <div id="exportModal" class="modal hidden">
+    <div class="modal-box">
+      <div class="modal-head">
+        <span>config.lua export</span>
+        <button id="exportClose" class="ghost icon">&#x2715;</button>
+      </div>
+      <p class="hint">Also saved on the server as <code>data/als_config_export.lua</code> every time you save.</p>
+      <textarea id="exportText" readonly spellcheck="false"></textarea>
+      <div class="modal-foot"><button id="exportCopy" class="primary">Copy to clipboard</button></div>
+    </div>
+  </div>
+
+  <div id="promptModal" class="modal hidden">
+    <div class="modal-box small">
+      <div class="modal-head"><span id="promptTitle">Model name</span></div>
+      <input id="promptInput" type="text" spellcheck="false" autocomplete="off">
+      <div id="promptError" class="error"></div>
+      <div class="modal-foot">
+        <button id="promptCancel" class="ghost">Cancel</button>
+        <button id="promptOk" class="primary">Add</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="released" class="released hidden">ALS editor &middot; press <b>F7</b> to edit</div>
+<script src="app.js"></script>
+</body>
+</html>

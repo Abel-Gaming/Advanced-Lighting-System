@@ -1,0 +1,163 @@
+{
+    "vehicles": [
+        {
+            "pattern": 1,
+            "model": "FBI2",
+            "lights": [
+                {
+                    "bone": "extra_1",
+                    "extras": [
+                        1,
+                        2
+                    ],
+                    "offset": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "color": "red"
+                },
+                {
+                    "bone": "extra_3",
+                    "extras": [
+                        3,
+                        4
+                    ],
+                    "offset": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "color": "blue"
+                },
+                {
+                    "bone": "extra_1",
+                    "extras": [
+                        7,
+                        8,
+                        9
+                    ],
+                    "offset": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "color": "amber"
+                }
+            ]
+        },
+        {
+            "pattern": 2,
+            "model": "lspd1",
+            "lights": [
+                {
+                    "bone": "extra_1",
+                    "extras": [
+                        1,
+                        3
+                    ],
+                    "offset": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "color": "red"
+                },
+                {
+                    "bone": "extra_1",
+                    "extras": [
+                        2,
+                        4
+                    ],
+                    "offset": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "color": "blue"
+                },
+                {
+                    "bone": "extra_1",
+                    "extras": [
+                        3,
+                        4
+                    ],
+                    "offset": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "color": "white"
+                }
+            ]
+        }
+    ],
+    "patterns": [
+        {
+            "Primary": [
+                [
+                    1,
+                    2
+                ],
+                [
+                    3,
+                    4
+                ]
+            ],
+            "flashDelay": 250,
+            "id": 1,
+            "Warning": [
+                [
+                    7,
+                    9
+                ],
+                [
+                    8
+                ]
+            ],
+            "Secondary": [
+                [
+                    1
+                ],
+                [
+                    4
+                ]
+            ]
+        },
+        {
+            "Primary": [
+                [
+                    1,
+                    3,
+                    5
+                ],
+                [
+                    2,
+                    4,
+                    6
+                ]
+            ],
+            "flashDelay": 250,
+            "id": 2,
+            "Warning": [
+                [
+                    7,
+                    9
+                ],
+                [
+                    8
+                ]
+            ],
+            "Secondary": [
+                [
+                    1,
+                    5
+                ],
+                [
+                    4,
+                    6
+                ]
+            ]
+        }
+    ]
+}
